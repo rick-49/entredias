@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#46664f">
+  <title>Entre dias · Seu diário de humor</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/mobile.css">
+  <script type="module" src="/app.js"></script>
+  <script type="module" src="/session.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
+      <p class="brand-caption">UM ESPAÇO PARA VOCÊ</p>
+      <nav aria-label="Principal"><a class="nav-item active" href="#calendar"><span>▦</span> Meu diário <span class="nav-indicator"></span></a><a class="nav-item" href="/dashboard"><span>◴</span> Dashboard</a><button class="nav-item" id="export"><span>↧</span> Exportar CSV</button></nav>
+      <div class="sidebar-bottom"><div class="little-flower">✳</div><p>Cada sentimento<br>tem seu espaço.</p><span>Um dia de cada vez.</span></div>
+      <div class="local-badge"><span></span> Um diário particular, uma instalação</div>
+    </aside>
+    <main>
+      <header class="topbar"><span>Meu diário <span class="breadcrumb">/ Visão semanal</span></span><span class="today-label" id="today-label"></span></header>
+      <div class="content">
+        <section class="intro"><div><div class="eyebrow">PAUSA PARA SE PERCEBER</div><h1>Como você está se sentindo?</h1><p>Observe seus dias, acolha seus sentimentos e conheça seu ritmo.</p></div><span class="intro-art" aria-hidden="true">✳</span></section>
+        <section class="calendar-panel" id="calendar" aria-label="Calendário semanal">
+          <div class="section-heading"><div><h2>Sua semana <span class="small-pill" id="week-count"></span></h2><p id="week-range"></p></div><div class="week-controls"><button id="prev-week" class="icon-button" aria-label="Semana anterior">‹</button><button id="today" class="today-button">Hoje</button><button id="next-week" class="icon-button" aria-label="Próxima semana">›</button></div></div>
+          <div id="week-grid" class="week-grid"></div>
+          <div class="calendar-footer"><span><i class="dot"></i> Selecione um dia para registrar como se sentiu</span><span>Todos os sentimentos são bem-vindos.</span></div>
+        </section>
+        <div class="detail-layout">
+          <div class="diary-column">
+          <section class="day-records" id="day-records" aria-labelledby="day-title"><div class="day-records-heading"><div><div class="eyebrow">SEUS MOMENTOS</div><h2 id="day-title"></h2><p id="day-count"></p></div><button class="primary-button" id="new-assessment" disabled>＋ Iniciar avaliação</button></div><div id="assessment-list"></div></section>
+          <p id="save-status" class="diary-status" role="status" aria-live="polite">Carregando suas avaliações…</p>
+          <section class="editor-panel" id="editor" aria-labelledby="editor-title" hidden>
+            <form id="assessment-form">
+            <div class="editor-header"><div class="eyebrow" id="selected-date"></div><h2 id="editor-title">Como você se sente agora?</h2><p>Neutro significa “não estou sentindo”. Todos os humores começam assim.</p></div>
+            <div class="assessment-time-field"><label for="assessment-time">Horário desta avaliação<input id="assessment-time" type="time" required></label><p id="time-help"></p></div>
+            <div class="intensity-guide"><span>INTENSIDADE</span><span><b>Neutro</b> Não sinto</span><span><b>I</b> Leve</span><span><b>II</b> Moderada</span><span><b>III</b> Intensa</span></div>
+            <div class="mood-grid" id="mood-grid"></div>
+            <label class="note-label" for="note">Resenha deste momento <span>opcional</span></label>
+            <textarea id="note" maxlength="2000" rows="4" placeholder="O que aconteceu neste horário? Como você está se sentindo?"></textarea>
+            <p id="editor-status" class="diary-status" role="status" aria-live="polite"></p>
+            <div class="save-row"><button type="button" id="cancel-assessment" class="today-button">Cancelar</button><button type="submit" id="save" class="primary-button">Salvar avaliação</button></div>
+            </form>
+          </section>
+          </div>
+          <aside class="insights">
+            <section class="summary-panel"><span class="eyebrow">UM OLHAR PARA A SEMANA</span><h2>Pequenos registros,<br> novas percepções.</h2><div class="progress-number"><strong id="recorded-count">0</strong><span>/ 7 dias</span><span class="summary-icon">▦</span></div><p class="muted" id="week-assessments">0 avaliações nesta semana</p><div class="progress-track"><div id="progress-fill"></div></div><div class="summary-divider"></div><p class="summary-label">O QUE MAIS APARECEU</p><div id="frequent-moods"></div></section>
+            <section class="gentle-note"><span class="note-star">✧</span><h3>Não existe jeito certo de sentir.</h3><p>Seus sentimentos podem mudar ao longo do dia. Registre o que faz sentido para você, no seu tempo.</p></section>
+            <p class="care-note">Este diário é uma ferramenta de autoconhecimento. Os registros não representam um diagnóstico.</p>
+          </aside>
+        </div>
+        <footer class="page-footer"><span>entre dias · um momento para você</span><span>Feito para acolher todos os seus dias.</span></footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
