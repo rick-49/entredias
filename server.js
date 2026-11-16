@@ -22,9 +22,9 @@ const files = {
   '/login': ['public/login.html', 'text/html; charset=utf-8'],
   '/manifest.webmanifest': ['public/manifest.webmanifest', 'application/manifest+json'],
 };
-for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'sw.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
-for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
-for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
+for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
+for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css', 'share.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
+for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js', 'share-data.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
 for (const file of ['icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png']) files[`/icons/${file}`] = [`public/icons/${file}`, 'image/png'];
 
 const server = http.createServer(async (req, res) => {

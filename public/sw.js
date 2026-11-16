@@ -1,5 +1,5 @@
-const CACHE = 'entre-dias-pwa-v2';
-const SHELL = ['/', '/app', '/dashboard', '/dados', '/styles.css', '/mobile.css', '/landing.css', '/dashboard.css', '/app.js', '/dashboard.js', '/dados.js', '/install.js', '/local-data.js', '/shared.js', '/analytics.js', '/csv.js', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-icon.png'];
+const CACHE = 'entre-dias-pwa-v3';
+const SHELL = ['/', '/app', '/dashboard', '/dados', '/styles.css', '/mobile.css', '/landing.css', '/dashboard.css', '/share.css', '/app.js', '/dashboard.js', '/dados.js', '/install.js', '/share.js', '/share-data.js', '/local-data.js', '/shared.js', '/analytics.js', '/csv.js', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));

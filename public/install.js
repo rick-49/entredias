@@ -1,3 +1,5 @@
+import '/share.js';
+
 export function isInstalled() {
   return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 }

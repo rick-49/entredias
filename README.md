@@ -18,6 +18,7 @@ A notificação automática não é garantida: o navegador decide se e quando mo
 - Horário ajustável e resenha independente por avaliação.
 - Dashboard por período, com frequência, distribuição de intensidade, evolução por horário e histórico.
 - Exportação CSV, backup JSON e restauração local sem sobrescrever os registros existentes.
+- Botão Compartilhar no diário, dashboard e backups, com WhatsApp, Telegram, Facebook, e-mail, cópia de link e compartilhamento nativo quando disponível. Compartilha somente o link público de instalação.
 - Manifesto instalável, ícones Android/iOS, service worker e shell completo para uso offline.
 
 ## Dados e privacidade
