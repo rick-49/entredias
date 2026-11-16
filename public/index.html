@@ -2,25 +2,25 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#46664f">
   <title>Entre dias · Seu diário de humor</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/mobile.css">
   <script type="module" src="/app.js"></script>
-  <script type="module" src="/session.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Entre dias">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
+      <a class="brand" href="/app" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
       <p class="brand-caption">UM ESPAÇO PARA VOCÊ</p>
-      <nav aria-label="Principal"><a class="nav-item active" href="#calendar"><span>▦</span> Meu diário <span class="nav-indicator"></span></a><a class="nav-item" href="/dashboard"><span>◴</span> Dashboard</a><button class="nav-item" id="export"><span>↧</span> Exportar CSV</button></nav>
+      <nav aria-label="Principal"><a class="nav-item active" href="#calendar"><span>▦</span> Meu diário <span class="nav-indicator"></span></a><a class="nav-item" href="/dashboard"><span>◴</span> Dashboard</a><a class="nav-item" href="/dados"><span>↧</span> Dados e backup</a></nav>
       <div class="sidebar-bottom"><div class="little-flower">✳</div><p>Cada sentimento<br>tem seu espaço.</p><span>Um dia de cada vez.</span></div>
-      <div class="local-badge"><span></span> Um diário particular, uma instalação</div>
+      <div class="local-badge"><span></span> Registros só neste dispositivo</div>
     </aside>
     <main>
-      <header class="topbar"><span>Meu diário <span class="breadcrumb">/ Visão semanal</span></span><span class="today-label" id="today-label"></span></header>
+      <header class="topbar"><span>Meu diário <span class="breadcrumb">/ Visão semanal</span></span><span class="today-label" id="today-label"></span><button id="export" class="today-button export-shortcut">Exportar CSV</button></header>
       <div class="content">
         <section class="intro"><div><div class="eyebrow">PAUSA PARA SE PERCEBER</div><h1>Como você está se sentindo?</h1><p>Observe seus dias, acolha seus sentimentos e conheça seu ritmo.</p></div><span class="intro-art" aria-hidden="true">✳</span></section>
         <section class="calendar-panel" id="calendar" aria-label="Calendário semanal">

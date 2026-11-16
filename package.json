@@ -1,14 +1,20 @@
 {
   "name": "entre-dias",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Diário de humor com avaliações por horário, nível neutro e dashboard.",
+  "description": "PWA de diário de humor offline, com dados locais, avaliações por horário e dashboard.",
   "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build": "node scripts/build.js",
+    "backup:anterior": "node scripts/export-backup.js",
     "test": "node --test"
   },
-  "engines": { "node": ">=22.13.0" }
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.8"
+  }
 }

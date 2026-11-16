@@ -1,54 +1,48 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import path from 'node:path';
 import { runtimeConfig } from '../config.js';
 
-test('produção exige senha e banco persistente fora do build; desenvolvimento continua local', () => {
-  const root = path.resolve('example-app');
-  const production = { NODE_ENV: 'production', APP_PASSWORD: 'senha-ficticia-para-teste' };
-  assert.equal(runtimeConfig(root, {}).host, '127.0.0.1');
-  assert.throws(() => runtimeConfig(root, { NODE_ENV: 'production' }), /APP_PASSWORD/);
-  assert.throws(() => runtimeConfig(root, production), /DATA_DIR/);
-  assert.throws(() => runtimeConfig(root, { ...production, DATA_DIR: 'data' }), /absoluto/);
-  assert.throws(() => runtimeConfig(root, { ...production, DATA_DIR: path.join(root, 'data') }), /fora do código/);
-  const hostingRoot = path.resolve('hosting-example', 'domains', 'diario.example', 'hbuilds', 'versions', '123', 'nodejs');
-  const config = runtimeConfig(hostingRoot, production);
+test('landing pública não exige senha nem banco e mantém a exportação antiga desabilitada', () => {
+  const config = runtimeConfig(path.resolve('example-app'), { NODE_ENV: 'production' });
   assert.equal(config.host, '0.0.0.0');
-  assert.equal(config.dataDir, path.resolve('hosting-example', 'domains', 'diario.example', 'entredias-data'));
+  assert.equal(config.password, '');
+  assert.equal(config.dataDir, null);
+  assert.equal(runtimeConfig(path.resolve('example-app'), { NODE_ENV: 'production', APP_PASSWORD: 'curta' }).password, '');
 });
 
-test('hospedagem protege página, dados e CSV, autentica, encerra sessão e limita tentativas', async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'diary-auth-test-'));
-  const password = 'senha-ficticia-para-teste';
-  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, NODE_ENV: 'production', APP_PASSWORD: password, DATA_DIR: dir, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+test('servidor distribui shell instalável sem banco e não recebe avaliações pessoais', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'diary-pwa-test-'));
+  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, NODE_ENV: 'production', ENABLE_LEGACY_EXPORT: '', APP_PASSWORD: '', DATA_DIR: dir, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
   try {
-    const [output] = await once(child.stdout, 'data');
-    const base = output.toString().match(/http:\/\/localhost:\d+/)[0];
+    const output = await Promise.race([
+      once(child.stdout, 'data').then(([data]) => data.toString()),
+      once(child, 'exit').then(([code]) => { throw new Error(`Servidor encerrou: ${code}`); }),
+      new Promise((_, reject) => { const timer = setTimeout(() => reject(new Error('Timeout ao iniciar')), 10000); timer.unref(); }),
+    ]);
+    const base = output.match(/http:\/\/localhost:\d+/)[0];
     const request = (route, options = {}) => fetch(`${base}${route}`, { redirect: 'manual', ...options });
-    assert.equal((await request('/')).status, 303);
-    assert.equal((await request('/dashboard')).status, 303);
-    assert.equal((await request('/api/assessments')).status, 401);
-    assert.equal((await request('/api/export.csv')).status, 401);
-    assert.equal((await request('/health')).status, 200);
-    assert.equal((await request('/login')).status, 200);
-    const login = value => request('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: value }) });
-    assert.equal((await login('errada')).status, 401);
-    assert.equal((await request('/api/login', { method: 'POST', body: '{}' })).status, 403);
-    const response = await login(password);
-    assert.equal(response.status, 200);
-    const setCookie = response.headers.get('set-cookie');
-    for (const flag of ['HttpOnly', 'SameSite=Strict', 'Secure']) assert.ok(setCookie.includes(flag));
-    const cookie = setCookie.split(';')[0];
-    assert.equal((await request('/api/assessments', { headers: { Cookie: cookie } })).status, 200);
-    assert.equal((await request('/api/export.csv', { headers: { Cookie: cookie } })).status, 200);
-    assert.equal((await request('/logout', { method: 'POST', headers: { Cookie: cookie } })).status, 303);
-    assert.equal((await request('/api/assessments', { headers: { Cookie: cookie } })).status, 401);
-    for (let i = 0; i < 10; i++) assert.equal((await login('errada')).status, 401);
-    assert.equal((await login(password)).status, 429);
+    const landing = await request('/'); assert.equal(landing.status, 200); assert.ok((await landing.text()).includes('Instalar no celular'));
+    for (const route of ['/app', '/dashboard', '/dados', '/install.js', '/local-data.js', '/csv.js', '/landing.css', '/health']) assert.equal((await request(route)).status, 200);
+    const manifest = await (await request('/manifest.webmanifest')).json();
+    assert.equal(manifest.start_url, '/app'); assert.equal(manifest.display, 'standalone');
+    for (const icon of manifest.icons) {
+      const response = await request(icon.src); assert.equal(response.status, 200);
+      assert.equal(Buffer.from(await response.arrayBuffer()).subarray(1, 4).toString(), 'PNG');
+    }
+    const sw = await request('/sw.js'); assert.equal(sw.headers.get('service-worker-allowed'), '/');
+    const shell = (await sw.text()).match(/const SHELL = (\[[^;]+\])/)[1];
+    const paths = [...shell.matchAll(/'([^']+)'/g)].map(match => match[1]);
+    for (const route of paths) assert.equal((await request(route)).status, 200, route);
+    assert.ok(paths.every(route => !route.startsWith('/api/')));
+    assert.equal((await request('/api/assessments')).status, 410);
+    assert.equal((await request('/api/assessments/00000000-0000-0000-0000-000000000000', { method: 'PUT', body: '{}' })).status, 410);
+    assert.equal((await request('/api/legacy/backup')).status, 403);
+    assert.ok(!existsSync(path.join(dir, 'diary.sqlite')));
   } finally {
     if (child.exitCode === null) { const ended = once(child, 'exit'); child.kill(); await ended; }
     rmSync(dir, { recursive: true, force: true });

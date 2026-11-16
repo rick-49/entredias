@@ -1,5 +1,9 @@
 import { MOODS } from '/shared.js';
 import { analyze } from '/analytics.js';
+import { allAssessments, downloadFile } from '/local-data.js';
+import { entriesToCsv } from '/csv.js';
+import { requireInstalled } from '/install.js';
+await requireInstalled();
 
 const $ = selector => document.querySelector(selector);
 const romans = ['Neutro', 'I', 'II', 'III'];
@@ -57,7 +61,7 @@ function applyFilters() {
   renderTrend();
   renderWeekdays();
   renderHistory();
-  $('#reflection').textContent = report.records.length ? `Você fez ${report.records.length} avaliações em ${report.recordedDays} ${report.recordedDays === 1 ? 'dia' : 'dias'}. Observe como os sentimentos mudaram entre os horários e releia as resenhas de cada momento. Avaliações com todos os humores neutros também fazem parte desse histórico.` : 'Seu primeiro registro é um ponto de partida. Escolha um dia e inicie uma avaliação.';
+  $('#reflection').textContent = report.records.length ? `Você fez ${report.records.length} ${report.records.length === 1 ? 'avaliação' : 'avaliações'} em ${report.recordedDays} ${report.recordedDays === 1 ? 'dia' : 'dias'}. Observe como os sentimentos mudaram entre os horários e releia as resenhas de cada momento. Avaliações com todos os humores neutros também fazem parte desse histórico.` : 'Seu primeiro registro é um ponto de partida. Escolha um dia e inicie uma avaliação.';
 }
 function renderRanking() {
   const target = $('#ranking');
@@ -118,7 +122,7 @@ function renderTrend() {
     plot.append(column);
   });
   chart.append(plot);
-  $('#trend-footnote').textContent = `${moments.length} avaliações exibidas em ordem cronológica. Neutro significa não estar sentindo esse humor na avaliação. Dias sem avaliação não são representados como neutros.${report.records.length > 120 ? ' O gráfico mostra as últimas 120 avaliações do período; os demais painéis consideram todas.' : ''}`;
+  $('#trend-footnote').textContent = `${moments.length} ${moments.length === 1 ? 'avaliação exibida' : 'avaliações exibidas'} em ordem cronológica. Neutro significa não estar sentindo esse humor na avaliação. Dias sem avaliação não são representados como neutros.${report.records.length > 120 ? ' O gráfico mostra as últimas 120 avaliações do período; os demais painéis consideram todas.' : ''}`;
 }
 function renderWeekdays() {
   const target = $('#weekdays');
@@ -137,7 +141,7 @@ function renderWeekdays() {
 function renderHistory() {
   const target = $('#history');
   target.replaceChildren();
-  $('#history-count').textContent = `${report.records.length} registros`;
+  $('#history-count').textContent = `${report.records.length} ${report.records.length === 1 ? 'registro' : 'registros'}`;
   for (const entry of report.records.slice(page * 10, (page + 1) * 10)) {
     const date = entry.date;
     const row = document.createElement('tr');
@@ -152,7 +156,7 @@ function renderHistory() {
     const note = el('td', 'history-note', entry.note || 'Sem anotação');
     const action = el('td', '');
     const link = el('a', 'edit-link', 'Ver avaliação ↗');
-    link.href = `/?date=${date}&assessment=${entry.id}`;
+    link.href = `/app?date=${date}&assessment=${entry.id}`;
     link.setAttribute('aria-label', `Ver avaliação de ${date} ${entry.time ?? 'sem horário'}`);
     action.append(link);
     row.append(dateCell, moods, note, action);
@@ -171,9 +175,7 @@ async function load() {
   $('#refresh').disabled = true;
   $('#status').textContent = 'Carregando seus registros…';
   try {
-    const response = await fetch('/api/assessments');
-    if (!response.ok) throw new Error();
-    entries = await response.json();
+    entries = await allAssessments();
     loaded = true;
     if (period) setPeriod(period);
     applyFilters();
@@ -196,5 +198,9 @@ $('#trend-mood').addEventListener('change', renderTrend);
 $('#prev-page').addEventListener('click', () => { if (page > 0) { page--; renderHistory(); } });
 $('#next-page').addEventListener('click', () => { if ((page + 1) * 10 < report.records.length) { page++; renderHistory(); } });
 $('#refresh').addEventListener('click', load);
+$('#export').addEventListener('click', async () => {
+  try { downloadFile(entriesToCsv(await allAssessments()), 'text/csv;charset=utf-8', 'entre-dias.csv'); }
+  catch (error) { $('#status').textContent = error.message; }
+});
 setPeriod('30');
 load();

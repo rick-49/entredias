@@ -1,61 +1,69 @@
 # Entre dias
 
-Diário de humor em Node.js, em português, com calendário semanal, várias avaliações por dia e layout adaptado ao celular.
+Diário de humor em **PWA**, com landing page pública de instalação, avaliações por horário, nível neutro e dashboard. Cada pessoa usa o próprio banco **IndexedDB**, no seu dispositivo. O servidor distribui o aplicativo e não recebe as novas avaliações ou resenhas.
 
-Para publicar o site com acesso por senha e banco persistente, siga [o guia da Hostinger](HOSTINGER.md). Use Node.js 24.x, o preset **Other / Outro**, `npm run build` e `npm start`. A senha e os dados pessoais ficam fora do repositório.
+## Usar no celular
 
-## Iniciar
+1. Acesse o endereço HTTPS da instalação.
+2. Toque em **Instalar o app**. No Android/Chrome, confirme o convite ou use o menu **Instalar app / Adicionar à tela inicial**.
+3. No iPhone, abra no Safari e use **Compartilhar → Adicionar à Tela de Início**, com **Abrir como App** quando disponível.
+4. Abra o app pelo ícone da tela inicial. Depois da primeira preparação, ele funciona offline.
 
-Requer Node.js 22.13 ou superior (recomendado: Node.js 24). Não é necessário instalar dependências. No Windows, também pode abrir o arquivo `iniciar.bat` com um clique duplo.
+A notificação automática não é garantida: o navegador decide se e quando mostra o convite. A landing page mantém um botão e instruções para as alternativas. O formulário do diário é liberado no modo instalado. Em localhost há uma exceção para desenvolvimento.
 
-```sh
-node server.js
-```
+## O que está incluído
 
-Abra http://localhost:3000 no navegador. Para desenvolvimento, use `node --watch server.js`.
+- Calendário semanal e várias avaliações no mesmo dia, mesmo quando os horários coincidem.
+- Doze humores, cada um com Neutro (não estou sentindo), I (leve), II (moderada) e III (intensa).
+- Horário ajustável e resenha independente por avaliação.
+- Dashboard por período, com frequência, distribuição de intensidade, evolução por horário e histórico.
+- Exportação CSV, backup JSON e restauração local sem sobrescrever os registros existentes.
+- Manifesto instalável, ícones Android/iOS, service worker e shell completo para uso offline.
 
-## Usar
+## Dados e privacidade
 
-- Navegue entre semanas pelas setas e clique em um dia.
-- Toque em **Iniciar avaliação**. O horário atual será preenchido; você pode ajustá-lo para registrar outro momento do dia.
-- Todos os humores começam em **Neutro**: significa **não estou sentindo esse humor**. Selecione I (leve), II (moderada) ou III (intensa) apenas nos humores presentes.
-- Toque em Neutro ou novamente na intensidade selecionada para voltar aquele humor a neutro.
-- Escreva a **resenha deste momento**, opcional, e toque em **Salvar avaliação**.
-- Inicie quantas avaliações precisar. Cada uma tem um identificador próprio, horário, humores e resenha independentes. Mesmo duas avaliações no mesmo horário são preservadas.
-- Uma avaliação com todos os humores neutros e sem resenha também pode ser salva. Limpar os campos não apaga uma avaliação.
-- Use **Editar** no cartão do horário para corrigir aquela avaliação. Inicie outra para registrar um novo momento.
-- No celular, a navegação fica na parte inferior, os humores aparecem um por linha e o histórico do dashboard vira cartões.
-- A lateral mostra dias registrados, total de avaliações e os três sentimentos mais frequentes na semana exibida. Neutros não entram na frequência.
-- **Exportar CSV** baixa todos os registros salvos diretamente do banco de dados. Salve suas alterações antes de exportar.
+Os registros ficam no IndexedDB `entre-dias-local`, armazenamento `assessments`. Não há conta, senha compartilhada, analytics ou sincronização automática. A instalação não usa fontes externas. O navegador ainda se conecta ao site para baixar os arquivos do aplicativo e verificar atualizações, sem enviar os registros.
 
-O CSV usa UTF-8 com BOM, separador ponto e vírgula e uma linha por humor de cada avaliação, incluindo os neutros. Inclui identificador da avaliação, data, horário, dia da semana, humor, nível, intensidade, resenha e última atualização (UTC). O horário da avaliação é o horário local informado, sem conversão. Pode ser aberto no Excel; se necessário, selecione o delimitador **ponto e vírgula** ao importar. Resenhas que começam com caracteres de fórmula recebem um apóstrofo na exportação para serem tratadas como texto.
+Cada origem (domínio/protocolo/porta), perfil de navegador e, em algumas plataformas, instalação pode ter um banco separado. O app não criptografa o IndexedDB. Em dispositivos compartilhados, use o bloqueio de tela.
 
-Os 12 humores são alegria, calma, gratidão, disposição, ansiedade, tristeza, humor deprimido, agitação, irritação, cansaço, estresse e solidão. Todos possuem quatro opções: Neutro, I, II e III. Novos humores podem ser adicionados em `shared.js` e assumem neutro nos registros em que estiverem ausentes.
+Limpar os dados do site, remover o app, trocar de celular ou a remoção de armazenamento pelo navegador pode apagar os registros. Em **Dados e backup**, baixe regularmente um backup JSON e guarde-o em um local privado. A solicitação de armazenamento persistente pode ser negada pelo navegador. O CSV é para análise; não serve para restaurar o diário.
 
-## Dashboard
+A restauração valida todo o arquivo antes de gravar e usa uma transação. IDs já existentes são mantidos, sem substituir suas versões atuais. Para levar os dados a outro celular, instale o app e restaure o JSON nele.
 
-Abra **Dashboard** pelo menu ou acesse http://localhost:3000/dashboard. Filtre os últimos 7, 30 ou 90 dias, todo o histórico ou um intervalo personalizado. A análise inclui dias únicos registrados, quantidade de avaliações, frequência por humor em avaliações, distribuição de níveis I a III, evolução por horário e hábito de registro por dia da semana. O histórico é paginado e permite abrir a avaliação exata no diário.
+## Desenvolvimento
 
-Avaliações neutras contam como avaliações realizadas e dias registrados, mas não entram na frequência de sentimentos nem no percentual de intensidade III. O gráfico mostra um ponto/barra para cada avaliação, inclusive neutros, sem misturar os horários em uma média diária. Até as últimas 120 avaliações são exibidas no gráfico; os demais painéis consideram todo o intervalo. Dias sem avaliação não são considerados neutros. Use **Atualizar dados** após salvar registros em outra aba. O CSV continua exportando todo o histórico.
-
-## Armazenamento
-
-Os registros são gravados no banco SQLite `data/diary.sqlite` no computador que executa o servidor e persistem após reiniciá-lo. Avaliações e humores ficam nas tabelas relacionadas `assessments` e `assessment_moods`, com gravação em transações. Para fazer um backup completo, pare o servidor e copie a pasta `data`.
-
-Na atualização para avaliações por horário, os dias antigos são convertidos uma única vez, preservando sentimentos, resenhas e última atualização. Como o aplicativo anterior não guardava horário, esses registros mostram **Horário não informado**; é possível informar um horário ao editá-los. Os humores não selecionados assumem neutro. Antes da conversão de dados antigos, é criada a cópia `data/diary-before-assessments.sqlite`. As tabelas antigas são preservadas e deixam de receber gravações. Abas da versão anterior precisam ser recarregadas.
-
-Se existir um arquivo anterior `data/entries.json`, ele será importado automaticamente na primeira inicialização. Essa importação ocorre uma única vez, preserva o JSON original como backup e não reaparece após editar ou apagar registros. Se algum registro antigo for inválido, a importação é interrompida sem importar parcialmente os dados.
-
-O aplicativo é pessoal: todos os navegadores que acessam esta instalação compartilham o mesmo diário. No uso local, o servidor aceita conexões apenas deste computador, em `127.0.0.1`. Em produção, o acesso por senha é obrigatório e as páginas, APIs e exportações exigem uma sessão autenticada. Não há contas individuais nem sincronização entre instalações. O SQLite não é criptografado pelo aplicativo.
-
-É possível definir as variáveis `PORT` (porta) e `DATA_DIR` (diretório de dados). A interface funciona sem fontes externas; quando há internet, tenta carregar as fontes DM Sans e Manrope do Google Fonts.
-
-O diário serve para autoconhecimento e não realiza diagnósticos.
-
-## Verificação
+Requer Node.js 22.13+; use Node.js 24 na Hostinger.
 
 ```sh
-node --test
+npm ci
+npm run build
+npm start
 ```
 
-Os testes verificam os quatro níveis, datas e horários válidos, várias avaliações no mesmo horário, salvamento de avaliações neutras, edição sem duplicação, persistência após reiniciar, migração de SQLite/JSON, backup, CSV e análises por avaliação com dias únicos.
+Abra http://localhost:3000 para a landing page e http://localhost:3000/app para testar o diário. O `iniciar.bat` também inicia o servidor e abre o navegador. O modo de desenvolvimento local permite testar sem instalar.
+
+```sh
+npm test
+```
+
+A dependência `fake-indexeddb` é apenas de testes. O aplicativo publicado usa as APIs nativas do navegador.
+
+## Publicar e atualizar
+
+Veja [HOSTINGER.md](HOSTINGER.md). Esta versão pública não exige `APP_PASSWORD` ou `DATA_DIR` para iniciar. Ela não grava novos registros no SQLite do servidor.
+
+Ao alterar os arquivos do app, altere o identificador `CACHE` em `public/sw.js`. O novo shell assume quando as janelas da versão anterior forem fechadas. Não é necessário apagar o IndexedDB nem remover o aplicativo para atualizar.
+
+## Preservar os registros da versão SQLite
+
+Os arquivos anteriores da pasta `data/` são preservados e continuam fora do GitHub. Para convertê-los em um backup restaurável na PWA:
+
+```sh
+npm run backup:anterior
+```
+
+O comando cria `data/backup-para-pwa.json`. Transfira esse arquivo privadamente para o celular, instale o app e restaure-o em **Dados e backup**. Horários desconhecidos de registros antigos continuam identificados como não informados.
+
+Para exportação de uma instalação antiga na Hostinger, veja o procedimento opcional e autenticado no guia. Essa rota é desabilitada por padrão e nunca é chamada nem armazenada em cache pela PWA.
+
+O diário é uma ferramenta de registro e autoconhecimento; não realiza diagnósticos.

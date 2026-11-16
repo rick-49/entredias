@@ -1,24 +1,24 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#46664f"><title>Entre dias · Dashboard</title>
   <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/dashboard.css">
   <link rel="stylesheet" href="/mobile.css">
   <script type="module" src="/dashboard.js"></script>
-  <script type="module" src="/session.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Entre dias">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
+      <a class="brand" href="/app" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
       <p class="brand-caption">UM ESPAÇO PARA VOCÊ</p>
-      <nav aria-label="Principal"><a class="nav-item" href="/"><span>▦</span> Meu diário</a><a class="nav-item active" href="/dashboard" aria-current="page"><span>◴</span> Dashboard <span class="nav-indicator"></span></a><a class="nav-item" href="/api/export.csv"><span>↧</span> Exportar CSV</a></nav>
+      <nav aria-label="Principal"><a class="nav-item" href="/app"><span>▦</span> Meu diário</a><a class="nav-item active" href="/dashboard" aria-current="page"><span>◴</span> Dashboard <span class="nav-indicator"></span></a><a class="nav-item" href="/dados"><span>↧</span> Dados e backup</a></nav>
       <div class="sidebar-bottom"><div class="little-flower">✳</div><p>Perceba seus dias.<br>Conheça seu ritmo.</p><span>Um registro de cada vez.</span></div>
-      <div class="local-badge"><span></span> Um diário particular, uma instalação</div>
+      <div class="local-badge"><span></span> Registros só neste dispositivo</div>
     </aside>
     <main>
-      <header class="topbar"><span>Dashboard <span class="breadcrumb">/ Análise dos registros</span></span><button class="today-button" id="refresh">↻ Atualizar dados</button></header>
+      <header class="topbar"><span>Dashboard <span class="breadcrumb">/ Análise dos registros</span></span><button class="today-button" id="refresh">↻ Atualizar dados</button><button id="export" class="today-button export-shortcut">Exportar CSV</button></header>
       <div class="content dashboard-content">
         <section class="intro"><div><div class="eyebrow">UM OLHAR COM MAIS PERSPECTIVA</div><h1>Cada dia conta uma história.</h1><p>Acompanhe os sentimentos que aparecem e como suas intensidades variam.</p></div><span class="intro-art" aria-hidden="true">◴</span></section>
         <form class="filters panel" id="filters"><div class="period-options" role="group" aria-label="Período"><button type="button" data-period="7">7 dias</button><button type="button" data-period="30" class="selected" aria-pressed="true">30 dias</button><button type="button" data-period="90">90 dias</button><button type="button" data-period="all">Todo o histórico</button></div><div class="date-fields"><label>De <input type="date" id="start" required min="1900-01-01" max="2100-12-31"></label><label>Até <input type="date" id="end" required min="1900-01-01" max="2100-12-31"></label><button class="primary-button" type="submit">Aplicar</button></div></form>
@@ -37,7 +37,7 @@
           <section class="panel chart-panel trend-panel"><div class="chart-heading"><div><h2>Um sentimento ao longo dos horários</h2><p id="trend-description">Cada barra é uma avaliação, com sua data e horário. Deslize para explorar.</p></div><label class="trend-select">Humor <select id="trend-mood"></select></label></div><div class="trend-legend"><span>Neutro · Não sinto</span><span>I · Leve</span><span>II · Moderada</span><span>III · Intensa</span></div><div class="trend-scroll" id="trend"></div><p class="chart-footnote" id="trend-footnote"></p></section>
           <div class="charts-grid history-grid">
             <section class="panel chart-panel"><div class="chart-heading"><div><h2>Seu hábito de registrar</h2><p>Dias registrados em relação aos dias disponíveis de cada semana.</p></div></div><div id="weekdays" class="weekday-chart"></div><p class="chart-footnote">Dias sem registro não indicam ausência de sentimentos.</p></section>
-            <section class="reflection-panel"><span class="eyebrow">OBSERVAR, SEM JULGAR</span><h2>Um convite à reflexão.</h2><p id="reflection"></p><a href="/" class="reflection-link">Voltar para o diário ↗</a><p class="reflection-disclaimer">As análises descrevem seus registros e não representam um diagnóstico. Intensidades de sentimentos diferentes não são uma nota geral de bem-estar.</p></section>
+            <section class="reflection-panel"><span class="eyebrow">OBSERVAR, SEM JULGAR</span><h2>Um convite à reflexão.</h2><p id="reflection"></p><a href="/app" class="reflection-link">Voltar para o diário ↗</a><p class="reflection-disclaimer">As análises descrevem seus registros e não representam um diagnóstico. Intensidades de sentimentos diferentes não são uma nota geral de bem-estar.</p></section>
           </div>
           <section class="panel chart-panel history-panel"><div class="chart-heading"><div><h2>Histórico do período</h2><p>Releia seus registros e o contexto de cada dia.</p></div><span class="chart-tag" id="history-count"></span></div><div class="table-scroll"><table><thead><tr><th scope="col">Dia</th><th scope="col">Humores e intensidades</th><th scope="col">Anotação</th><th scope="col"><span class="sr-only">Ação</span></th></tr></thead><tbody id="history"></tbody></table></div><div class="pagination"><span id="page-label"></span><div><button class="today-button" id="prev-page">← Anterior</button><button class="today-button" id="next-page">Próxima →</button></div></div></section>
         </div>

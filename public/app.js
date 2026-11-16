@@ -1,4 +1,8 @@
 import { MOODS, neutralMoods, validateEntry } from '/shared.js';
+import { allAssessments, saveAssessment, downloadFile } from '/local-data.js';
+import { entriesToCsv } from '/csv.js';
+import { requireInstalled } from '/install.js';
+await requireInstalled();
 
 const $ = selector => document.querySelector(selector);
 const romans = ['Neutro', 'I', 'II', 'III'];
@@ -171,12 +175,11 @@ async function save(event) {
   $('#note').disabled = true; $('#assessment-time').disabled = true; $('#cancel-assessment').disabled = true;
   renderDay(); renderMoods(); renderCalendar();
   try {
-    const response = await fetch(`/api/assessments/${draft.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível salvar.');
+    const result = await saveAssessment(draft);
     assessments = assessments.filter(entry => entry.id !== result.id); assessments.push(result);
     draft = null; dirty = false;
-    setStatus(`Avaliação das ${result.time ?? 'horas não informadas'} salva.`);
+    setStatus(`Avaliação das ${result.time ?? 'horas não informadas'} salva neste dispositivo.`);
+    navigator.storage?.persist?.().catch(() => {});
   } catch (error) { setStatus(`${error.message} Suas alterações continuam aqui.`, true); }
   finally {
     saving = false;
@@ -198,11 +201,7 @@ $('#export').addEventListener('click', async () => {
   if (!ready) return;
   $('#export').disabled = true;
   try {
-    const response = await fetch('/api/export.csv');
-    if (!response.ok) throw new Error('Não foi possível exportar. Tente novamente.');
-    const url = URL.createObjectURL(await response.blob());
-    const link = document.createElement('a'); link.href = url; link.download = `entre-dias-${key(new Date())}.csv`; link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadFile(entriesToCsv(await allAssessments()), 'text/csv;charset=utf-8', `entre-dias-${key(new Date())}.csv`);
     if (!dirty) setStatus('CSV exportado com todas as avaliações salvas.');
   } catch (error) { setStatus(error.message, true); }
   finally { $('#export').disabled = false; }
@@ -211,11 +210,9 @@ window.addEventListener('beforeunload', event => { if (dirty) { event.preventDef
 $('#today-label').textContent = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
 renderCalendar(); renderDay();
 try {
-  const response = await fetch('/api/assessments');
-  if (!response.ok) throw new Error();
-  assessments = await response.json(); ready = true;
+  assessments = await allAssessments(); ready = true;
   renderCalendar(); renderDay();
   const requested = assessments.find(entry => entry.id === params.get('assessment'));
   if (requested) { selected = requested.date; weekStart = monday(fromKey(selected)); renderCalendar(); openAssessment(requested); }
   else setStatus('Selecione um dia e inicie uma avaliação.');
-} catch { setStatus('Não foi possível carregar as avaliações. Recarregue a página para tentar novamente.', true); }
+} catch (error) { setStatus(error.message, true); }
