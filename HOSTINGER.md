@@ -54,14 +54,14 @@ Crie o banco e o usuário no painel da Hostinger. Como a senha anterior apareceu
 | Variável | Valor |
 | --- | --- |
 | `COMMUNITY_ENABLED` | `true` |
-| `DB_HOST` | Host MySQL informado pela Hostinger |
+| `DB_HOST` | `127.0.0.1` para app e MySQL nesta hospedagem |
 | `DB_PORT` | `3306`, salvo indicação diferente do provedor |
 | `DB_NAME` | Nome completo do banco, incluindo o prefixo da conta |
 | `DB_USER` | Usuário completo do banco, incluindo o prefixo |
 | `DB_PASSWORD` | A senha nova desse usuário |
 | `DB_SSL` | `true` somente se o serviço MySQL exigir/oferecer TLS com certificado verificável |
 
-O host indicado para esta instalação pelo usuário foi `srv1136.hstgr.io`; confira o host no painel antes de configurar. Não libere acesso indiscriminado no MySQL remoto: se o provedor exigir autorização de origem, autorize somente o servidor da aplicação.
+Nesta instalação, use `127.0.0.1` e `DB_SSL=false` para a conexão local. O endereço `srv1136.hstgr.io` é destinado ao acesso externo. Não libere acesso indiscriminado no MySQL remoto: se o provedor exigir autorização de origem, autorize somente o servidor da aplicação.
 
 Reimplante após aplicar as variáveis. O aplicativo cria as tabelas `entredias_contributors` e `entredias_observations` no primeiro acesso. O usuário MySQL precisa ter permissões para criar essas tabelas, ler, inserir, atualizar e excluir registros do banco selecionado.
 

@@ -31,7 +31,7 @@ A notificação automática não é garantida: o navegador decide se e quando mo
 
 Os registros ficam no IndexedDB `entre-dias-local`, versão 3, nos armazenamentos `assessments`, `medications`, `intakes` e `settings`. Atualizações preservam os dados anteriores. Não há conta nem senha compartilhada. A instalação não usa fontes externas. O navegador se conecta ao site para baixar arquivos e verificar atualizações.
 
-A contribuição começa **desligada**. Ao autorizar em **Ajustes e backup → Medicamentos e configurações**, o usuário vê o escopo e confirma o envio. **Salvar avaliação** passa a sincronizar os registros elegíveis, sem resenha, identidade, datas de calendário, horários exatos ou lacunas estimadas. Sem internet ou com falha do banco, o registro local é preservado e a contribuição fica pendente; ela é tentada ao abrir o app com conexão, no próximo salvamento ou ao recuperar a conexão com o app aberto. Não se promete sincronização em segundo plano com o app fechado.
+A contribuição começa **desligada**. Ao autorizar em **Configurações**, o usuário vê o escopo e confirma o envio. **Salvar avaliação** passa a sincronizar os registros elegíveis, sem resenha, identidade, datas de calendário, horários exatos ou lacunas estimadas. Sem internet ou com falha do banco, o registro local é preservado e a contribuição fica pendente; ela é tentada ao abrir o app com conexão, no próximo salvamento ou ao recuperar a conexão com o app aberto. Não se promete sincronização em segundo plano com o app fechado.
 
 Cada reenvio substitui a contribuição anterior daquela instalação (até 500 observações elegíveis). Há botão para desligar e retirar os dados enviados; a retirada exige internet. A chave privada de retirada fica no dispositivo e no backup JSON, nunca no relatório PDF. Restaurar o backup não restaura o consentimento de envio. As contribuições são pseudonimizadas, não uma garantia de anonimato, e não identificam pessoas verificadas.
 
@@ -45,7 +45,7 @@ A restauração valida todo o arquivo antes de gravar e usa uma transação. IDs
 
 ## Medicamentos e comparação por horário
 
-Em `/saude`, cadastre o princípio ativo, dose, unidade, horários previstos, data e hora de início. Para alterar uma dose ou horário, encerre o esquema antigo com data e hora (inclusive) e cadastre o novo a partir do próximo horário. O histórico do que foi salvo não é reescrito. Os nomes sugeridos são de princípios ativos, sem marca de laboratório, e não constituem indicação de tratamento.
+Em `/medicamentos`, cadastre o princípio ativo, dose, unidade, horários previstos, data e hora de início. Para alterar uma dose ou horário, encerre o esquema antigo com data e hora (inclusive) e cadastre o novo a partir do próximo horário. O histórico do que foi salvo não é reescrito. Os nomes sugeridos são de princípios ativos, sem marca de laboratório, e não constituem indicação de tratamento.
 
 Use **Registrar quando tomei** para registrar uma tomada real informada. Uma nova avaliação associa o esquema vigente naquele horário e as tomadas já informadas nas 24h anteriores. Registros feitos depois não são inseridos retroativamente em avaliações antigas. Ajustes de horário em uma avaliação nova recalculam esse contexto; avaliações antigas preservam o contexto salvo.
 
@@ -94,3 +94,9 @@ O comando cria `data/backup-para-pwa.json`. Transfira esse arquivo privadamente 
 Para exportação de uma instalação antiga na Hostinger, veja o procedimento opcional e autenticado no guia. Essa rota é desabilitada por padrão e nunca é chamada nem armazenada em cache pela PWA.
 
 O diário é uma ferramenta de registro e autoconhecimento; não realiza diagnósticos.
+
+## Navegação e análise geral
+
+Cinco guias: Meu diário, Dashboard, Medicamentos, Configurações e Ajustes e backup. Medicamentos reúne esquemas e tomadas; Configurações reúne referência, lembretes e consentimento. O botão Enviar relatório para meu médico abre a preparação local do PDF; não envia automaticamente dados a terceiros.
+
+O painel /comunidade tem filtros por medicamento e dose, janela de 14/30/90 dias, sentimento e amostra mínima de 5/10/20 instalações por grupo. Exibe indicadores ponderados por observações, distribuição por dia, comparação de medicamentos e mapa semanal. Clicar num dia detalha os grupos; clicar num sentimento muda os gráficos. Os totais são vínculos entre avaliação e medicamento, não pessoas únicas. Dias sem dados divulgáveis não são tratados como neutros. Nenhuma amostra fictícia é publicada.
