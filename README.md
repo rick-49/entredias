@@ -79,7 +79,7 @@ A dependência `fake-indexeddb` é apenas de testes. O aplicativo publicado usa 
 
 Veja [HOSTINGER.md](HOSTINGER.md). Esta versão pública não exige `APP_PASSWORD` ou `DATA_DIR` para iniciar. Ela não grava novas avaliações no SQLite do servidor; o SQLite privado de lembretes guarda somente as assinaturas e seus agendamentos.
 
-Ao alterar os arquivos do app, altere o identificador `CACHE` em `public/sw.js`. O novo shell assume quando as janelas da versão anterior forem fechadas. Não é necessário apagar o IndexedDB nem remover o aplicativo para atualizar.
+Ao alterar os arquivos do app, altere o identificador `CACHE` em `public/sw.js`. A nova versão assume após baixar todos os arquivos. O app verifica atualizações ao voltar à tela, reconectar e a cada cinco minutos em primeiro plano. A tela recarrega automaticamente se não houve interação; caso contrário, apresenta um botão para atualizar após salvar. Versões antigas sem esse aviso precisam ser fechadas e reabertas após o download. Não é necessário apagar o IndexedDB nem remover o aplicativo para atualizar.
 
 ## Preservar os registros da versão SQLite
 

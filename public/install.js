@@ -65,8 +65,32 @@ document.querySelectorAll('[data-install]').forEach(button => button.addEventLis
 syncInstallButtons();
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(async () => {
-    const registration = await navigator.serviceWorker.ready;
+  let interacted = false;
+  let refreshing = false;
+  let hadController = Boolean(navigator.serviceWorker.controller);
+  document.addEventListener('input', () => { interacted = true; }, true);
+  document.addEventListener('change', () => { interacted = true; }, true);
+  document.addEventListener('click', event => { if (event.target.closest('form, #new-assessment')) interacted = true; }, true);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) { hadController = true; return; }
+    if (refreshing) return;
+    if (!interacted) { refreshing = true; location.reload(); return; }
+    if (document.querySelector('#app-update-notice')) return;
+    const notice = document.createElement('aside'); notice.id = 'app-update-notice';
+    notice.setAttribute('role', 'status');
+    Object.assign(notice.style, { position: 'fixed', bottom: '90px', left: '12px', right: '12px', zIndex: '10000', padding: '16px', background: '#fff', color: '#243b26', border: '2px solid #435d3b', borderRadius: '16px', boxShadow: '0 4px 24px #0003' });
+    const message = document.createElement('p'); message.textContent = 'Nova versão pronta. Salve o que estiver preenchendo antes de atualizar.';
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'today-button'; button.textContent = 'Atualizar agora';
+    button.addEventListener('click', () => { if (confirm('Já salvou suas alterações? Atualizar recarrega esta tela.')) location.reload(); });
+    notice.append(message, button); document.body.append(notice);
+  });
+  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(async registration => {
+    const checkUpdate = () => { if (navigator.onLine) registration.update().catch(() => {}); };
+    checkUpdate();
+    window.addEventListener('online', checkUpdate);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+    setInterval(() => { if (document.visibilityState === 'visible') checkUpdate(); }, 5 * 60 * 1000);
+    await navigator.serviceWorker.ready;
     const worker = registration.active;
     offlineReady = Boolean(worker);
     const status = document.querySelector('#offline-status');
