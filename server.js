@@ -43,11 +43,11 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, mode: 'local-pwa' });
+    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, mode: 'local-pwa', diagnosticsVersion: 2 });
     if (req.method === 'GET' && url.pathname === '/api/community/status') return json(res, 200, { configured: community.configured, minimumContributors: MIN_CONTRIBUTORS });
     if (req.method === 'GET' && url.pathname === '/api/community/summary') {
       try { return json(res, 200, { groups: await community.summary(), minimumContributors: MIN_CONTRIBUTORS }); }
-      catch (error) { console.error('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral ainda indisponível. O diário local continua funcionando.' }); }
+      catch (error) { console.log('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral ainda indisponível. O diário local continua funcionando.' }); }
     }
     if (req.method === 'GET' && url.pathname === '/api/push/config') {
       try { return json(res, 200, await push.configuration()); }
@@ -62,7 +62,7 @@ const server = http.createServer(async (req, res) => {
         if (url.pathname === '/api/community/contribution') {
           const records = req.method === 'POST' ? validateContribution(body) : null;
           try { if (records) await community.save(body.token, records, CONTRIBUTION_VERSION); else await community.remove(body.token); }
-          catch (error) { console.error('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral indisponível. O registro permanece no dispositivo; o envio pode ser tentado depois.' }); }
+          catch (error) { console.log('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral indisponível. O registro permanece no dispositivo; o envio pode ser tentado depois.' }); }
         } else {
           const input = req.method === 'POST' ? validatePush(body) : null;
           try { if (input) await push.save(input); else await push.remove(body.token); }
