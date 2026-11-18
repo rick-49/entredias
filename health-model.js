@@ -12,10 +12,11 @@ export function normalizeMedication(input) {
   const dose = Number(input.dose);
   if (!Number.isFinite(dose) || dose <= 0 || dose > 100000) throw new Error('Informe uma dosagem maior que zero.');
   if (!['mg', 'mcg', 'g', 'mL', 'gotas', 'comprimidos', 'unidades'].includes(input.unit)) throw new Error('Unidade de dosagem inválida.');
-  if (!Array.isArray(input.times) || !input.times.length || input.times.length > 12 || input.times.some(time => !validTime(time))) throw new Error('Informe de 1 a 12 horários válidos, separados por vírgula.');
+  const times = Array.isArray(input.times) ? input.times.map(time => typeof time === 'string' && /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim().padStart(5, '0') : time) : [];
+  if (!times.length || times.length > 12 || times.some(time => !validTime(time))) throw new Error('Informe de 1 a 12 horários válidos, separados por vírgula. Exemplo: 9:30, 20:00.');
   const startTime = input.startTime || '00:00', endTime = input.endTime || '23:59';
   if (!validTime(startTime) || !validTime(endTime) || !validDate(input.startDate) || (input.endDate != null && (!validDate(input.endDate) || `${input.endDate}T${endTime}` < `${input.startDate}T${startTime}`))) throw new Error('Período do medicamento inválido.');
-  return { id: input.id, name, dose, unit: input.unit, times: [...new Set(input.times)].sort(), startDate: input.startDate, startTime, endDate: input.endDate || null, endTime };
+  return { id: input.id, name, dose, unit: input.unit, times: [...new Set(times)].sort(), startDate: input.startDate, startTime, endDate: input.endDate || null, endTime };
 }
 
 export function medicationSnapshot(medications, date, time = '12:00') {

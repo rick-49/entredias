@@ -11,6 +11,13 @@ import { createMedicalReport } from '../pdf-report.js';
 const medication = (extras = {}) => normalizeMedication({ id: randomUUID(), name: 'Medicamento de exemplo', dose: 5, unit: 'mg', times: ['08:00'], startDate: '2026-11-01', ...extras });
 const record = (extras = {}) => ({ id: randomUUID(), date: '2026-11-05', time: '14:30', moods: neutralMoods([{ id: 'ansiedade', level: 2 }]), note: 'RESENHA_SIGILOSA_TESTE', medications: [], medicationsRecorded: true, ...extras });
 
+test('medicamento aceita hora com um dígito e preserva validação de horários', () => {
+  assert.deepEqual(medication({ times: ['9:30', ' 0:05 ', '09:30', '20:00'] }).times, ['00:05', '09:30', '20:00']);
+  for (const time of ['24:00', '9:60', '9:3', '', '930', null]) assert.throws(() => medication({ times: [time] }));
+  assert.throws(() => medication({ times: [] }));
+  assert.throws(() => medication({ times: Array(13).fill('9:30') }));
+});
+
 test('horários dos esquemas são versionados e tomadas respeitam o momento da avaliação', () => {
   const before = medication({ endDate: '2026-11-05', endTime: '09:59' });
   const after = medication({ startDate: '2026-11-05', startTime: '10:00', times: ['15:00'] });
