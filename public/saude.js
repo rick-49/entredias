@@ -10,7 +10,16 @@ await requireInstalled();
 const $ = selector => document.querySelector(selector);
 const now = new Date(); const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 $('#med-start').value = today;
-for (const name of ACTIVE_INGREDIENTS) { const option = document.createElement('option'); option.value = name; $('#active-ingredients').append(option); }
+for (const name of ACTIVE_INGREDIENTS) { const option = document.createElement('option'); option.value = name; option.textContent = name; $('#med-name').append(option); }
+const otherMedication = document.createElement('option'); otherMedication.value = '__other__'; otherMedication.textContent = 'Outro princípio ativo'; $('#med-name').append(otherMedication);
+function syncCustomMedication() {
+  const custom = $('#med-name').value === '__other__';
+  $('#med-custom-label').hidden = !custom;
+  $('#med-custom-name').disabled = !custom;
+  $('#med-custom-name').required = custom;
+}
+$('#med-name').addEventListener('change', syncCustomMedication);
+syncCustomMedication();
 $('#intake-date').value = today; $('#intake-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 function element(tag, text) { const node = document.createElement(tag); node.textContent = text; return node; }
 async function renderMedications() {
@@ -40,8 +49,9 @@ async function renderMedications() {
 $('#medication-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {
-    await addMedication({ id: crypto.randomUUID(), name: $('#med-name').value, dose: Number($('#med-dose').value), unit: $('#med-unit').value, times: $('#med-times').value.split(',').map(value => value.trim()), startDate: $('#med-start').value, startTime: $('#med-start-time').value, endDate: $('#med-end').value || null, endTime: $('#med-end-time').value || '23:59' });
-    $('#medication-form').reset(); $('#med-start').value = today;
+    const name = $('#med-name').value === '__other__' ? $('#med-custom-name').value : $('#med-name').value;
+    await addMedication({ id: crypto.randomUUID(), name, dose: Number($('#med-dose').value), unit: $('#med-unit').value, times: $('#med-times').value.split(',').map(value => value.trim()), startDate: $('#med-start').value, startTime: $('#med-start-time').value, endDate: $('#med-end').value || null, endTime: $('#med-end-time').value || '23:59' });
+    $('#medication-form').reset(); $('#med-start').value = today; syncCustomMedication();
     $('#med-status').textContent = 'Medicamento salvo neste dispositivo. Ele será associado às novas avaliações dos dias em uso.';
     await renderMedications();
   } catch (error) { $('#med-status').textContent = error.message; }

@@ -1,4 +1,4 @@
-const CACHE = 'entre-dias-pwa-v6';
+const CACHE = 'entre-dias-pwa-v7';
 const SHELL = ['/', '/app', '/dashboard', '/dados', '/saude', '/relatorio', '/comunidade', '/styles.css', '/mobile.css', '/landing.css', '/dashboard.css', '/share.css', '/features.css', '/app.js', '/dashboard.js', '/dados.js', '/saude.js', '/relatorio.js', '/comunidade.js', '/reference-dialog.js', '/push-client.js', '/contribute.js', '/install.js', '/share.js', '/share-data.js', '/local-data.js', '/shared.js', '/health-model.js', '/medication-catalog.js', '/contribution-model.js', '/pdf-report.js', '/vendor/jspdf.umd.min.js', '/analytics.js', '/csv.js', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', event => {
