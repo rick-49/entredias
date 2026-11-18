@@ -8,12 +8,14 @@ import { createCommunityDatabase, communityErrorDiagnostic } from './community-d
 import { validateContribution, CONTRIBUTION_VERSION, MIN_CONTRIBUTORS } from './contribution-model.js';
 import { createPushService } from './push-server.js';
 import { validatePush } from './reminder-model.js';
+import { createInstallationStats } from './installation-stats.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const config = runtimeConfig(root);
 const access = createAccess(config);
 const community = createCommunityDatabase();
 const push = createPushService(config);
+const installationStats = createInstallationStats(config.dataDir);
 let legacyDiary;
 
 function json(res, status, value) {
@@ -33,7 +35,7 @@ const files = {
   '/login': ['public/login.html', 'text/html; charset=utf-8'],
   '/manifest.webmanifest': ['public/manifest.webmanifest', 'application/manifest+json'],
 };
-for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js', 'saude.js', 'configuracoes.js', 'relatorio.js', 'comunidade.js', 'community-analysis.js', 'i18n.js', 'translations.js', 'contribute.js', 'push-client.js', 'reference-dialog.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
+for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js', 'saude.js', 'configuracoes.js', 'relatorio.js', 'comunidade.js', 'community-analysis.js', 'i18n.js', 'translations.js', 'installation-counter.js', 'contribute.js', 'push-client.js', 'reference-dialog.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
 for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css', 'share.css', 'features.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
 for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js', 'share-data.js', 'health-model.js', 'contribution-model.js', 'pdf-report.js', 'medication-catalog.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
 files['/vendor/jspdf.umd.min.js'] = ['public/vendor/jspdf.umd.min.js', 'text/javascript; charset=utf-8'];
@@ -46,6 +48,17 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, mode: 'local-pwa', diagnosticsVersion: 2 });
+    if (url.pathname === '/api/installations' && req.method === 'GET') {
+      try { return json(res, 200, await installationStats.summary()); }
+      catch { return json(res, 503, { error: 'Contador indisponível.' }); }
+    }
+    if (url.pathname === '/api/installations' && req.method === 'POST') {
+      if (!req.headers['content-type']?.startsWith('application/json') || req.headers['sec-fetch-site'] === 'cross-site') return json(res, 403, {error:'Solicitação inválida.'});
+      let raw = ''; for await (const chunk of req) { raw += chunk; if(Buffer.byteLength(raw)>256) return json(res,413,{error:'Envio muito grande.'}); }
+      let body; try { body=JSON.parse(raw); } catch { return json(res,400,{error:'Formato inválido.'}); }
+      try { await installationStats.record(body); return json(res,200,{ok:true}); }
+      catch(error) { return json(res,error.code==='INVALID_INSTALLATION'?400:503,{error:'Não foi possível registrar a instalação.'}); }
+    }
     if (req.method === 'GET' && url.pathname === '/api/community/status') return json(res, 200, { configured: community.configured, minimumContributors: MIN_CONTRIBUTORS });
     if (req.method === 'GET' && url.pathname === '/api/community/summary') {
       try { return json(res, 200, { groups: await community.summary(), minimumContributors: MIN_CONTRIBUTORS }); }

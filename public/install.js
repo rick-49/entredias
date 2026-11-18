@@ -1,5 +1,6 @@
 import { translate as t, locale } from '/i18n.js';
 import '/share.js';
+import { countInstallation } from '/installation-counter.js';
 
 export function isInstalled() {
   return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: minimal-ui)').matches || navigator.standalone === true;
@@ -45,6 +46,7 @@ window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault(); installPrompt = event; syncInstallButtons();
 });
 window.addEventListener('appinstalled', () => {
+  countInstallation(true);
   installPrompt = null; syncInstallButtons();
   const status = document.querySelector('#install-status');
   if (status) status.textContent = 'Instalado! Abra o Entre dias pelo ícone na tela inicial do seu celular.';
@@ -106,3 +108,5 @@ if (new URLSearchParams(location.search).has('instalar')) showHelp('Para registr
 const connectionStatus = document.querySelector('#connection-status');
 function connectivity() { if (connectionStatus) connectionStatus.textContent = navigator.onLine ? 'Dados salvos só neste dispositivo' : 'Offline · seu diário continua disponível'; }
 window.addEventListener('online', connectivity); window.addEventListener('offline', connectivity); connectivity();
+countInstallation(isInstalled());
+window.addEventListener('online', () => countInstallation(isInstalled()));

@@ -105,3 +105,7 @@ O painel /comunidade tem filtros por medicamento e dose, janela de 14/30/90 dias
 
 Português (Brasil), English e Español estão disponíveis em Configurações → Idioma do aplicativo, e no seletor da página inicial e análise geral. A escolha é salva localmente por navegador/instalação e funciona offline. A tradução preserva valores dos formulários e textos pessoais. PDF, CSV e mensagens push continuam no formato original em português nesta versão. Alguns detalhamentos dinâmicos preservam a redação original.
 
+
+## Contador de instalações
+
+A análise geral mostra um contador aproximado. O evento appinstalled ou a primeira abertura em modo instalado envia um token aleatório independente da contribuição de saúde; nenhum dado do diário é incluído. O servidor guarda somente o hash da chave e a primeira data de recebimento no arquivo privado installations.sqlite, separado do MySQL de saúde. Reenvios são idempotentes; falhas tentam novamente ao abrir instalado ou recuperar conexão. A marca não entra no backup para que cada novo aparelho conte separadamente. Localhost não envia eventos. Instalações antigas só entram após abrir a versão atualizada. Limpeza de dados/reinstalação pode contar novamente. A API não atesta pessoas ou instalações reais e o total não deve ser usado como métrica auditada. Preserve a pasta privada de dados entre implantações.

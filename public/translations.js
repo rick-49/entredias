@@ -1930,5 +1930,17 @@ export const translations = {
   "Entre dias, início": [
     "Entre dias, home",
     "Entre dias, inicio"
+  ],
+  "Instalações registradas": [
+    "Recorded installations",
+    "Instalaciones registradas"
+  ],
+  "Contagem aproximada a partir desta atualização. Instalações antigas entram ao abrir a versão atualizada pelo ícone. Reinstalar ou limpar os dados pode contar novamente; não representa pessoas únicas.": [
+    "Approximate count starting with this update. Older installations count when opened from the icon after updating. Reinstalling or clearing data may count again; this is not a count of unique people.",
+    "Recuento aproximado desde esta actualización. Las instalaciones anteriores se cuentan al abrir la versión actualizada desde el icono. Reinstalar o borrar datos puede contar de nuevo; no representa personas únicas."
+  ],
+  "Para contar instalações, o app envia uma chave aleatória separada do diário. O contador não recebe resenhas, medicamentos ou sentimentos. A contribuição de saúde continua opcional.": [
+    "To count installations, the app sends a random key separate from your diary. The counter receives no notes, medications or feelings. Health contributions remain optional.",
+    "Para contar instalaciones, la app envía una clave aleatoria separada del diario. El contador no recibe notas, medicamentos ni sentimientos. La contribución de salud sigue siendo opcional."
   ]
 };
