@@ -11,6 +11,8 @@ export const MOODS = [
   { id: 'cansaco', name: 'Cansaço', icon: '☾', color: 'slate' },
   { id: 'estresse', name: 'Estresse', icon: '⌁', color: 'purple' },
   { id: 'solidao', name: 'Solidão', icon: '◌', color: 'blue' },
+  { id: 'raiva', name: 'Raiva', icon: '♨', color: 'orange' },
+  { id: 'medo', name: 'Medo', icon: '◇', color: 'purple' },
 ];
 
 export function validateEntry(date, input) {

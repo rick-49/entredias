@@ -4,10 +4,16 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { runtimeConfig } from './config.js';
 import { createAccess } from './auth.js';
+import { createCommunityDatabase } from './community-db.js';
+import { validateContribution, CONTRIBUTION_VERSION, MIN_CONTRIBUTORS } from './contribution-model.js';
+import { createPushService } from './push-server.js';
+import { validatePush } from './reminder-model.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const config = runtimeConfig(root);
 const access = createAccess(config);
+const community = createCommunityDatabase();
+const push = createPushService(config);
 let legacyDiary;
 
 function json(res, status, value) {
@@ -19,12 +25,16 @@ const files = {
   '/app': ['public/index.html', 'text/html; charset=utf-8'],
   '/dashboard': ['public/dashboard.html', 'text/html; charset=utf-8'],
   '/dados': ['public/dados.html', 'text/html; charset=utf-8'],
+  '/saude': ['public/saude.html', 'text/html; charset=utf-8'],
+  '/relatorio': ['public/relatorio.html', 'text/html; charset=utf-8'],
+  '/comunidade': ['public/comunidade.html', 'text/html; charset=utf-8'],
   '/login': ['public/login.html', 'text/html; charset=utf-8'],
   '/manifest.webmanifest': ['public/manifest.webmanifest', 'application/manifest+json'],
 };
-for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
-for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css', 'share.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
-for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js', 'share-data.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
+for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js', 'saude.js', 'relatorio.js', 'comunidade.js', 'contribute.js', 'push-client.js', 'reference-dialog.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
+for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css', 'share.css', 'features.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
+for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js', 'share-data.js', 'health-model.js', 'contribution-model.js', 'pdf-report.js', 'medication-catalog.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
+files['/vendor/jspdf.umd.min.js'] = ['public/vendor/jspdf.umd.min.js', 'text/javascript; charset=utf-8'];
 for (const file of ['icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png']) files[`/icons/${file}`] = [`public/icons/${file}`, 'image/png'];
 
 const server = http.createServer(async (req, res) => {
@@ -34,6 +44,33 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, mode: 'local-pwa' });
+    if (req.method === 'GET' && url.pathname === '/api/community/status') return json(res, 200, { configured: community.configured, minimumContributors: MIN_CONTRIBUTORS });
+    if (req.method === 'GET' && url.pathname === '/api/community/summary') {
+      try { return json(res, 200, { groups: await community.summary(), minimumContributors: MIN_CONTRIBUTORS }); }
+      catch (error) { console.error('Community:', error.code || error.name); return json(res, 503, { error: 'Análise geral ainda indisponível. O diário local continua funcionando.' }); }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/push/config') {
+      try { return json(res, 200, await push.configuration()); }
+      catch { return json(res, 200, { enabled: false, message: 'Armazenamento privado de lembretes indisponível.' }); }
+    }
+    if (['/api/community/contribution', '/api/push/subscription'].includes(url.pathname) && ['POST', 'DELETE'].includes(req.method)) {
+      if (!req.headers['content-type']?.startsWith('application/json') || req.headers['sec-fetch-site'] === 'cross-site') return json(res, 403, { error: 'Solicitação inválida.' });
+      let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 500000) return json(res, 413, { error: 'Envio muito grande.' }); }
+      let body; try { body = JSON.parse(raw); } catch { return json(res, 400, { error: 'Formato inválido.' }); }
+      try {
+        if (req.method === 'DELETE' && !/^[a-f0-9]{64}$/.test(body?.token || '')) throw new Error('Chave de retirada inválida.');
+        if (url.pathname === '/api/community/contribution') {
+          const records = req.method === 'POST' ? validateContribution(body) : null;
+          try { if (records) await community.save(body.token, records, CONTRIBUTION_VERSION); else await community.remove(body.token); }
+          catch (error) { console.error('Community:', error.code || error.name); return json(res, 503, { error: 'Análise geral indisponível. O registro permanece no dispositivo; o envio pode ser tentado depois.' }); }
+        } else {
+          const input = req.method === 'POST' ? validatePush(body) : null;
+          try { if (input) await push.save(input); else await push.remove(body.token); }
+          catch { return json(res, 503, { error: 'Servidor de lembretes indisponível.' }); }
+        }
+      } catch (error) { return json(res, 400, { error: error.message }); }
+      return json(res, 200, { ok: true });
+    }
     if (req.method === 'GET' && files[url.pathname]) {
       const [file, type] = files[url.pathname];
       if (url.pathname === '/sw.js') res.setHeader('Service-Worker-Allowed', '/');
@@ -60,3 +97,4 @@ const server = http.createServer(async (req, res) => {
 });
 const port = Number(process.env.PORT || 3000);
 server.listen(port, config.host, () => console.log(`Entre dias disponível em http://localhost:${server.address().port}`));
+push.start();

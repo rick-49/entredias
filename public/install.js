@@ -1,7 +1,7 @@
 import '/share.js';
 
 export function isInstalled() {
-  return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+  return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: minimal-ui)').matches || navigator.standalone === true;
 }
 
 export async function requireInstalled() {
@@ -17,13 +17,28 @@ const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform 
 
 function syncInstallButtons() {
   document.querySelectorAll('[data-install]').forEach(button => {
-    button.textContent = isInstalled() ? 'Abrir meu diário ↗' : installPrompt ? 'Instalar no celular ↗' : 'Instalar o app ↗';
+    button.textContent = isInstalled() ? 'Abrir meu diário ↗' : ios ? 'Instalar no iPhone ↗' : installPrompt ? 'Instalar no celular ↗' : 'Instalar o app ↗';
   });
 }
 function showHelp(message) {
   const status = document.querySelector('#install-status');
   if (status) status.textContent = message;
   document.querySelector('#como-instalar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function showIphoneInstall() {
+  let dialog = document.querySelector('#iphone-install');
+  if (!dialog) {
+    dialog = document.createElement('dialog'); dialog.id = 'iphone-install'; dialog.className = 'iphone-install';
+    const title = document.createElement('h2'); title.id = 'iphone-install-title'; title.textContent = 'Instalar no iPhone';
+    dialog.setAttribute('aria-labelledby', title.id);
+    const intro = document.createElement('p'); intro.textContent = 'O iPhone confirma a instalação pelo menu do Safari. Siga estes passos:';
+    const list = document.createElement('ol');
+    for (const text of ['Abra entredias.online no Safari. Se estiver no Instagram ou WhatsApp, use Abrir no navegador.', 'Toque em Compartilhar (quadrado com seta para cima). Em algumas versões, abra primeiro o menu do Safari.', 'Role as ações e escolha Adicionar à Tela de Início. Se não aparecer, use Editar Ações para localizar essa opção.', 'Ative Abrir como App, se aparecer, e toque em Adicionar.', 'Volte à tela inicial do iPhone e abra o ícone Entre dias. É por ele que você usa o diário e ativa os lembretes.']) { const item = document.createElement('li'); item.textContent = text; list.append(item); }
+    const note = document.createElement('p'); note.textContent = 'Mantenha a conexão até aparecer “App preparado para uso offline”. Para notificações, use iOS 16.4 ou mais recente.';
+    const close = document.createElement('button'); close.className = 'landing-button'; close.textContent = 'Entendi, vou adicionar pelo Safari'; close.addEventListener('click', () => dialog.close());
+    dialog.append(title, intro, list, note, close); document.body.append(dialog);
+  }
+  dialog.showModal();
 }
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault(); installPrompt = event; syncInstallButtons();
@@ -35,6 +50,7 @@ window.addEventListener('appinstalled', () => {
 });
 document.querySelectorAll('[data-install]').forEach(button => button.addEventListener('click', async () => {
   if (isInstalled()) { location.assign('/app'); return; }
+  if (ios) { showIphoneInstall(); return; }
   if (installPrompt) {
     const prompt = installPrompt; installPrompt = null;
     await prompt.prompt();

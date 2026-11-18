@@ -1,6 +1,6 @@
 {
   "name": "entre-dias",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "PWA de diário de humor offline, com dados locais, avaliações por horário e dashboard.",
   "type": "module",
@@ -16,5 +16,10 @@
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.8"
+  },
+  "dependencies": {
+    "jspdf": "^4.2.1",
+    "mysql2": "^3.24.6",
+    "web-push": "^4.0.0"
   }
 }

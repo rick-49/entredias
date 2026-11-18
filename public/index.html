@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#46664f">
   <title>Entre dias · Seu diário de humor</title>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/mobile.css">
+  <link rel="stylesheet" href="/mobile.css"><link rel="stylesheet" href="/features.css">
   <link rel="stylesheet" href="/share.css">
   <script type="module" src="/app.js"></script>
   <link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Entre dias">
@@ -16,7 +16,7 @@
     <aside class="sidebar">
       <a class="brand" href="/app" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
       <p class="brand-caption">UM ESPAÇO PARA VOCÊ</p>
-      <nav aria-label="Principal"><a class="nav-item active" href="#calendar"><span>▦</span> Meu diário <span class="nav-indicator"></span></a><a class="nav-item" href="/dashboard"><span>◴</span> Dashboard</a><a class="nav-item" href="/dados"><span>↧</span> Dados e backup</a></nav>
+      <nav aria-label="Principal"><a class="nav-item active" href="#calendar"><span>▦</span> Meu diário <span class="nav-indicator"></span></a><a class="nav-item" href="/dashboard"><span>◴</span> Dashboard</a><a class="nav-item" href="/dados"><span>↧</span> Ajustes e backup</a></nav>
       <div class="sidebar-bottom"><div class="little-flower">✳</div><p>Cada sentimento<br>tem seu espaço.</p><span>Um dia de cada vez.</span></div>
       <div class="local-badge"><span></span> Registros só neste dispositivo</div>
     </aside>
@@ -31,12 +31,14 @@
         </section>
         <div class="detail-layout">
           <div class="diary-column">
-          <section class="day-records" id="day-records" aria-labelledby="day-title"><div class="day-records-heading"><div><div class="eyebrow">SEUS MOMENTOS</div><h2 id="day-title"></h2><p id="day-count"></p></div><button class="primary-button" id="new-assessment" disabled>＋ Iniciar avaliação</button></div><div id="assessment-list"></div></section>
+          <section class="day-records" id="day-records" aria-labelledby="day-title"><div class="day-records-heading"><div><div class="eyebrow">SEUS MOMENTOS</div><h2 id="day-title"></h2><p id="day-count"></p></div><button class="primary-button" id="new-assessment" disabled>＋ Iniciar avaliação</button></div><div id="assessment-list"></div><p class="chart-footnote" id="reference-summary"></p><button class="today-button" id="complete-reference">Completar referência do dia</button><a class="inline-link" href="/saude">Medicamentos e configurações ↗</a></section>
           <p id="save-status" class="diary-status" role="status" aria-live="polite">Carregando suas avaliações…</p>
           <section class="editor-panel" id="editor" aria-labelledby="editor-title" hidden>
             <form id="assessment-form">
             <div class="editor-header"><div class="eyebrow" id="selected-date"></div><h2 id="editor-title">Como você se sente agora?</h2><p>Neutro significa “não estou sentindo”. Todos os humores começam assim.</p></div>
             <div class="assessment-time-field"><label for="assessment-time">Horário desta avaliação<input id="assessment-time" type="time" required></label><p id="time-help"></p></div>
+            <label class="field-label" for="assessment-duration">Duração em minutos (estimada até você ajustar)<input id="assessment-duration" type="number" min="1" max="1440" value="20" required></label>
+            <div class="medication-box"><strong>Medicamentos informados em uso neste momento</strong><p id="assessment-medications"></p><small>Esquema cadastrado; não confirma que a dose foi tomada.</small><a class="inline-link" href="/saude">Gerenciar medicamentos ↗</a></div>
             <div class="intensity-guide"><span>INTENSIDADE</span><span><b>Neutro</b> Não sinto</span><span><b>I</b> Leve</span><span><b>II</b> Moderada</span><span><b>III</b> Intensa</span></div>
             <div class="mood-grid" id="mood-grid"></div>
             <label class="note-label" for="note">Resenha deste momento <span>opcional</span></label>

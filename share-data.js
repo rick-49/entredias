@@ -1,6 +1,6 @@
 export const SHARE_URL = 'https://entredias.online/';
 export const SHARE_TITLE = 'Entre dias — Diário de humor';
-export const SHARE_TEXT = 'Conheça o Entre dias: um diário de humor gratuito que funciona offline e salva seus registros só no seu dispositivo. Instale no celular:';
+export const SHARE_TEXT = 'Conheça o Entre dias: diário de humor gratuito e offline, com medicamentos, referências e dados locais. A contribuição para a análise geral é opcional. Instale no celular:';
 
 export function shareLinks() {
   const message = `${SHARE_TEXT} ${SHARE_URL}`;

@@ -1,6 +1,7 @@
-import { allAssessments, makeBackup, restoreBackup, downloadFile } from '/local-data.js';
+import { allAssessments, allMedications, allIntakes, getSetting, makeBackup, restoreBackup, downloadFile } from '/local-data.js';
 import { entriesToCsv } from '/csv.js';
 import { requireInstalled } from '/install.js';
+import { syncPendingContribution } from '/contribute.js';
 await requireInstalled();
 const status = document.querySelector('#backup-status');
 const day = () => new Date().toISOString().slice(0, 10);
@@ -10,7 +11,7 @@ async function storageInfo() {
   document.querySelector('#storage-info').textContent = `${records.length} avaliações salvas neste dispositivo. ${persistent ? 'O navegador concedeu armazenamento persistente.' : 'O navegador ainda não concedeu armazenamento persistente; mantenha seus backups.'}`;
 }
 document.querySelector('#backup').addEventListener('click', async () => {
-  try { downloadFile(JSON.stringify(makeBackup(await allAssessments()), null, 2), 'application/json', `entre-dias-backup-${day()}.json`); status.textContent = 'Backup preparado. Guarde o arquivo em um lugar privado.'; }
+  try { downloadFile(JSON.stringify(makeBackup(await allAssessments(), await allMedications(), await getSetting('reference', {}), { intakes: await allIntakes(), dailyReferences: await getSetting('dailyReferences', {}), contributionWithdrawalToken: await getSetting('contributionToken') }), null, 2), 'application/json', `entre-dias-backup-${day()}.json`); status.textContent = 'Backup preparado com avaliações, medicamentos, tomadas e referência. Guarde o arquivo em um lugar privado.'; }
   catch (error) { status.textContent = error.message; }
 });
 document.querySelector('#csv').addEventListener('click', async () => {
@@ -37,3 +38,4 @@ document.querySelector('#persist').addEventListener('click', async () => {
   } catch { status.textContent = 'Não foi possível solicitar a proteção. Continue fazendo backups.'; }
 });
 storageInfo().catch(error => { status.textContent = error.message; });
+syncPendingContribution().catch(() => {});

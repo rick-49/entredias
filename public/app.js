@@ -1,5 +1,8 @@
 import { MOODS, neutralMoods, validateEntry } from '/shared.js';
-import { allAssessments, saveAssessment, downloadFile } from '/local-data.js';
+import { allAssessments, allMedications, allIntakes, getSetting, setSetting, saveAssessment, downloadFile } from '/local-data.js';
+import { medicationSnapshot, medicationLabel, intakeSnapshot, validDate, DEFAULT_REFERENCE, referenceTimeline } from '/health-model.js';
+import { askDailyReference } from '/reference-dialog.js';
+import { queueContribution, syncPendingContribution } from '/contribute.js';
 import { entriesToCsv } from '/csv.js';
 import { requireInstalled } from '/install.js';
 await requireInstalled();
@@ -22,6 +25,10 @@ let draft = null;
 let dirty = false;
 let saving = false;
 let ready = false;
+let medications = [];
+let reference = DEFAULT_REFERENCE;
+let dailyReferences = {};
+let intakes = [];
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -105,10 +112,14 @@ function renderDay() {
     if (!active.length) chips.append(el('span', 'neutral-chip', 'Todos os humores neutros'));
     else chips.append(el('span', 'neutral-chip', `${MOODS.length - active.length} neutros`));
     card.append(heading, chips, el('p', 'assessment-note', entry.note || 'Sem resenha neste horário.'));
+    card.append(el('p', 'medication-caption', entry.medicationsRecorded ? (entry.medications?.length ? entry.medications.map(medicationLabel).join(' | ') : 'Nenhum medicamento cadastrado em uso nesta avaliação.') : 'Medicamentos não informados neste registro antigo.'));
     $('#assessment-list').append(card);
   }
   $('#editor').hidden = !draft;
   $('#new-assessment').disabled = saving || !ready;
+  const dayReference = dailyReferences[selected] ? { ...reference, ...dailyReferences[selected], enabled: true } : reference;
+  const gaps = referenceTimeline(assessments, selected, dayReference).filter(point => point.source === 'reference');
+  $('#reference-summary').textContent = gaps.length ? `${gaps.length} ${gaps.length === 1 ? 'intervalo sem avaliação usa' : 'intervalos sem avaliação usam'} ${MOODS.find(m => m.id === dayReference.moodId).name} ${romans[dayReference.level]} como referência estimada. As avaliações ocupam a duração informada (padrão de ${reference.durationMinutes} min). Veja no dashboard.` : 'Você pode configurar um humor de referência para comparar as lacunas de horários.';
 }
 function renderMoods() {
   const grid = $('#mood-grid');
@@ -149,8 +160,9 @@ function openAssessment(entry = null) {
   const now = new Date();
   draft = entry ? structuredClone(entry) : {
     id: crypto.randomUUID(), date: selected, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-    moods: neutralMoods(), note: '',
+    moods: neutralMoods(), note: '', medications: medicationSnapshot(medications, selected, `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`), medicationsRecorded: true, durationMinutes: reference.durationMinutes, durationSource: 'estimated',
   };
+  if (!entry) draft.intakes = intakeSnapshot(intakes, selected, draft.time);
   dirty = !entry;
   $('#editor-title').textContent = entry ? 'Editar avaliação' : 'Como você se sente agora?';
   $('#selected-date').textContent = fromKey(selected).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
@@ -158,6 +170,8 @@ function openAssessment(entry = null) {
   $('#assessment-time').required = draft.time !== null;
   $('#time-help').textContent = draft.time === null ? 'Registro antigo sem horário. Você pode informar um horário, se lembrar.' : 'O horário é preenchido ao iniciar. Você pode ajustá-lo.';
   $('#note').value = draft.note;
+  $('#assessment-duration').value = draft.durationMinutes || reference.durationMinutes;
+  renderMedicationContext();
   setStatus(entry ? 'Você pode ajustar este registro e salvar novamente.' : 'Todos começam em neutro. Marque apenas o que estiver sentindo.');
   renderDay(); renderMoods();
   $('#editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -173,6 +187,7 @@ async function save(event) {
   saving = true;
   $('#save').disabled = true; $('#save').textContent = 'Salvando…';
   $('#note').disabled = true; $('#assessment-time').disabled = true; $('#cancel-assessment').disabled = true;
+  $('#assessment-duration').disabled = true; $('#complete-reference').disabled = true;
   renderDay(); renderMoods(); renderCalendar();
   try {
     const result = await saveAssessment(draft);
@@ -180,11 +195,16 @@ async function save(event) {
     draft = null; dirty = false;
     setStatus(`Avaliação das ${result.time ?? 'horas não informadas'} salva neste dispositivo.`);
     navigator.storage?.persist?.().catch(() => {});
+    const contribution = await queueContribution().catch(() => ({ pending: true }));
+    if (contribution.sent) setStatus('Avaliação salva no dispositivo e contribuição enviada sem resenha.');
+    else if (contribution.pending) setStatus('Avaliação salva no dispositivo. Contribuição pendente: será tentada ao abrir o app com internet.');
+    else if (contribution.empty) setStatus('Avaliação salva no dispositivo. Sem medicamento elegível para contribuição neste registro.');
   } catch (error) { setStatus(`${error.message} Suas alterações continuam aqui.`, true); }
   finally {
     saving = false;
     $('#save').disabled = false; $('#save').textContent = 'Salvar avaliação';
     $('#note').disabled = false; $('#assessment-time').disabled = false; $('#cancel-assessment').disabled = false;
+    $('#assessment-duration').disabled = false; $('#complete-reference').disabled = false;
     renderDay(); renderMoods(); renderCalendar();
     if (!draft) { $('#new-assessment').focus({ preventScroll: true }); $('#day-records').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   }
@@ -193,7 +213,20 @@ $('#new-assessment').addEventListener('click', () => openAssessment());
 $('#cancel-assessment').addEventListener('click', closeEditor);
 $('#assessment-form').addEventListener('submit', save);
 $('#note').addEventListener('input', event => { if (draft) { draft.note = event.target.value; dirty = true; setStatus('Avaliação ainda não salva.'); } });
+$('#assessment-duration').addEventListener('input', event => { if (draft) { draft.durationMinutes = Number(event.target.value); draft.durationSource = 'reported'; dirty = true; setStatus('Avaliação ainda não salva.'); } });
 $('#assessment-time').addEventListener('input', event => { if (draft) { draft.time = event.target.value || null; dirty = true; setStatus('Avaliação ainda não salva.'); } });
+$('#assessment-time').addEventListener('change', () => {
+  if (draft && !assessments.some(entry => entry.id === draft.id)) { draft.medications = medicationSnapshot(medications, selected, draft.time || '00:00'); draft.intakes = intakeSnapshot(intakes, selected, draft.time); renderMedicationContext(); }
+});
+function renderMedicationContext() {
+  const meds = draft.medicationsRecorded ? (draft.medications?.length ? draft.medications.map(medicationLabel).join(' | ') : 'Nenhum medicamento em uso cadastrado para este horário.') : 'Medicamentos não foram informados nesta avaliação antiga.';
+  const doses = (draft.intakes || []).map(intake => `${intake.name} ${intake.dose} ${intake.unit} em ${intake.date.split('-').reverse().join('/')} às ${intake.time}`).join('; ');
+  $('#assessment-medications').textContent = meds + (doses ? ` Tomadas informadas nas últimas 24h: ${doses}.` : ' Nenhuma tomada informada nas últimas 24h.');
+}
+$('#complete-reference').addEventListener('click', async () => {
+  const result = await askDailyReference(selected, reference);
+  if (result) { dailyReferences[selected] = result; renderDay(); setStatus('Referência do dia salva como estimativa para as lacunas, sem alterar as avaliações.'); }
+});
 $('#prev-week').addEventListener('click', () => { weekStart = addDays(weekStart, -7); renderCalendar(); });
 $('#next-week').addEventListener('click', () => { weekStart = addDays(weekStart, 7); renderCalendar(); });
 $('#today').addEventListener('click', () => { selectDate(today); weekStart = monday(fromKey(selected)); renderCalendar(); });
@@ -210,9 +243,14 @@ window.addEventListener('beforeunload', event => { if (dirty) { event.preventDef
 $('#today-label').textContent = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
 renderCalendar(); renderDay();
 try {
-  assessments = await allAssessments(); ready = true;
+  [assessments, medications, reference, dailyReferences, intakes] = await Promise.all([allAssessments(), allMedications(), getSetting('reference', DEFAULT_REFERENCE), getSetting('dailyReferences', {}), allIntakes()]); ready = true;
   renderCalendar(); renderDay();
   const requested = assessments.find(entry => entry.id === params.get('assessment'));
   if (requested) { selected = requested.date; weekStart = monday(fromKey(selected)); renderCalendar(); openAssessment(requested); }
   else setStatus('Selecione um dia e inicie uma avaliação.');
+  syncPendingContribution().catch(() => {});
+  if (params.has('referencia')) {
+    const date = params.get('referencia') === 'hoje' ? today : params.get('referencia');
+    if (validDate(date) && date <= today) { selected = date; weekStart = monday(fromKey(date)); renderCalendar(); renderDay(); const result = await askDailyReference(date, reference); if (result) { dailyReferences[date] = result; renderDay(); } }
+  }
 } catch (error) { setStatus(error.message, true); }

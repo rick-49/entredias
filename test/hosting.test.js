@@ -17,7 +17,7 @@ test('landing pública não exige senha nem banco e mantém a exportação antig
 
 test('servidor distribui shell instalável sem banco e não recebe avaliações pessoais', async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'diary-pwa-test-'));
-  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, NODE_ENV: 'production', ENABLE_LEGACY_EXPORT: '', APP_PASSWORD: '', DATA_DIR: dir, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, NODE_ENV: 'production', ENABLE_LEGACY_EXPORT: '', COMMUNITY_ENABLED: '', PUSH_ENABLED: 'false', APP_PASSWORD: '', DATA_DIR: dir, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
   try {
     const output = await Promise.race([
       once(child.stdout, 'data').then(([data]) => data.toString()),
@@ -42,6 +42,11 @@ test('servidor distribui shell instalável sem banco e não recebe avaliações 
     assert.equal((await request('/api/assessments')).status, 410);
     assert.equal((await request('/api/assessments/00000000-0000-0000-0000-000000000000', { method: 'PUT', body: '{}' })).status, 410);
     assert.equal((await request('/api/legacy/backup')).status, 403);
+    assert.deepEqual(await (await request('/api/community/status')).json(), { configured: false, minimumContributors: 5 });
+    assert.equal((await request('/api/community/summary')).status, 503);
+    assert.deepEqual(await (await request('/api/push/config')).json(), { enabled: false });
+    assert.equal((await request('/api/community/contribution', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: 'a'.repeat(64), records: [{ note: 'não deve ser aceito' }] }) })).status, 400);
+    assert.equal((await request('/api/community/contribution', { method: 'POST', body: '{}' })).status, 403);
     assert.ok(!existsSync(path.join(dir, 'diary.sqlite')));
   } finally {
     if (child.exitCode === null) { const ended = once(child, 'exit'); child.kill(); await ended; }

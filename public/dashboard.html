@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#46664f"><title>Entre dias · Dashboard</title>
   <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/dashboard.css">
-  <link rel="stylesheet" href="/mobile.css">
+  <link rel="stylesheet" href="/mobile.css"><link rel="stylesheet" href="/features.css">
   <link rel="stylesheet" href="/share.css">
   <script type="module" src="/dashboard.js"></script>
   <link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Entre dias">
@@ -14,7 +14,7 @@
     <aside class="sidebar">
       <a class="brand" href="/app" aria-label="Entre dias, início"><span class="brand-mark">✳</span> entre dias<span class="brand-dot">.</span></a>
       <p class="brand-caption">UM ESPAÇO PARA VOCÊ</p>
-      <nav aria-label="Principal"><a class="nav-item" href="/app"><span>▦</span> Meu diário</a><a class="nav-item active" href="/dashboard" aria-current="page"><span>◴</span> Dashboard <span class="nav-indicator"></span></a><a class="nav-item" href="/dados"><span>↧</span> Dados e backup</a></nav>
+      <nav aria-label="Principal"><a class="nav-item" href="/app"><span>▦</span> Meu diário</a><a class="nav-item active" href="/dashboard" aria-current="page"><span>◴</span> Dashboard <span class="nav-indicator"></span></a><a class="nav-item" href="/dados"><span>↧</span> Ajustes e backup</a></nav>
       <div class="sidebar-bottom"><div class="little-flower">✳</div><p>Perceba seus dias.<br>Conheça seu ritmo.</p><span>Um registro de cada vez.</span></div>
       <div class="local-badge"><span></span> Registros só neste dispositivo</div>
     </aside>
@@ -40,7 +40,7 @@
             <section class="panel chart-panel"><div class="chart-heading"><div><h2>Seu hábito de registrar</h2><p>Dias registrados em relação aos dias disponíveis de cada semana.</p></div></div><div id="weekdays" class="weekday-chart"></div><p class="chart-footnote">Dias sem registro não indicam ausência de sentimentos.</p></section>
             <section class="reflection-panel"><span class="eyebrow">OBSERVAR, SEM JULGAR</span><h2>Um convite à reflexão.</h2><p id="reflection"></p><a href="/app" class="reflection-link">Voltar para o diário ↗</a><p class="reflection-disclaimer">As análises descrevem seus registros e não representam um diagnóstico. Intensidades de sentimentos diferentes não são uma nota geral de bem-estar.</p></section>
           </div>
-          <section class="panel chart-panel history-panel"><div class="chart-heading"><div><h2>Histórico do período</h2><p>Releia seus registros e o contexto de cada dia.</p></div><span class="chart-tag" id="history-count"></span></div><div class="table-scroll"><table><thead><tr><th scope="col">Dia</th><th scope="col">Humores e intensidades</th><th scope="col">Anotação</th><th scope="col"><span class="sr-only">Ação</span></th></tr></thead><tbody id="history"></tbody></table></div><div class="pagination"><span id="page-label"></span><div><button class="today-button" id="prev-page">← Anterior</button><button class="today-button" id="next-page">Próxima →</button></div></div></section>
+          <section class="panel chart-panel" style="margin-bottom:22px"><div class="chart-heading"><div><h2>Intervalos do dia e humor de referência</h2><p>Lacunas estimadas, separadas das avaliações registradas.</p></div><label class="field-label">Dia<input id="reference-day" type="date"></label></div><div class="reference-track" id="reference-track"></div><div class="reference-list" id="reference-list"></div><p class="chart-footnote" id="reference-explanation"></p><a href="/saude" class="inline-link">Ajustar referência e duração ↗</a></section><section class="panel chart-panel" style="margin-bottom:22px"><h2>Comparação entre esquemas de medicamento</h2><p class="chart-footnote">Vínculos temporais dos medicamentos informados em cada avaliação. Não demonstra efeito causado pelo medicamento. Horários previstos não comprovam ingestão.</p><div id="medication-analysis"></div><a href="/saude" class="inline-link">Ver histórico de esquemas e tomadas ↗</a><a href="/relatorio" class="inline-link">Preparar PDF ↗</a></section><section class="panel chart-panel history-panel"><div class="chart-heading"><div><h2>Histórico do período</h2><p>Releia seus registros e o contexto de cada dia.</p></div><span class="chart-tag" id="history-count"></span></div><div class="table-scroll"><table><thead><tr><th scope="col">Dia</th><th scope="col">Humores e intensidades</th><th scope="col">Anotação</th><th scope="col"><span class="sr-only">Ação</span></th></tr></thead><tbody id="history"></tbody></table></div><div class="pagination"><span id="page-label"></span><div><button class="today-button" id="prev-page">← Anterior</button><button class="today-button" id="next-page">Próxima →</button></div></div></section>
         </div>
         <footer class="page-footer"><span>entre dias · um momento para você</span><span>Feito para acolher todos os seus dias.</span></footer>
       </div>

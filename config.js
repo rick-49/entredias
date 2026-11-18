@@ -3,8 +3,8 @@ import path from 'node:path';
 export function runtimeConfig(root, env = process.env) {
   const production = env.NODE_ENV === 'production';
   const host = env.HOST || (production ? '0.0.0.0' : '127.0.0.1');
-  // A PWA pública não usa senha ou banco de servidor. Esta configuração serve
-  // apenas para permitir ao proprietário exportar uma instalação SQLite anterior.
+  // A senha protege somente a exportação antiga. O diário da PWA é local;
+  // dataDir também guarda assinaturas push, separadas da análise MySQL.
   const password = env.ENABLE_LEGACY_EXPORT === 'true' && (env.APP_PASSWORD || '').length >= 12 ? env.APP_PASSWORD : '';
   const marker = `${path.sep}hbuilds${path.sep}`;
   const buildIndex = root.indexOf(marker);

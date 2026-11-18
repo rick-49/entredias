@@ -7,6 +7,19 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+if not exist node_modules\jspdf\package.json (
+  echo Preparando as dependencias do aplicativo...
+  call npm ci
+  if errorlevel 1 (
+    pause
+    exit /b 1
+  )
+)
+call npm run build
+if errorlevel 1 (
+  pause
+  exit /b 1
+)
 echo Iniciando Entre dias em http://127.0.0.1:%PORT%
 echo Mantenha esta janela aberta enquanto usa o diario.
 start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "$diaryUrl = 'http://127.0.0.1:%PORT%'; for ($attempt = 0; $attempt -lt 30; $attempt++) { try { $response = Invoke-WebRequest -Uri $diaryUrl -UseBasicParsing -TimeoutSec 1; if ($response.StatusCode -eq 200) { Start-Process $diaryUrl; exit } } catch {}; Start-Sleep -Milliseconds 300 }"

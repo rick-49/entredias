@@ -1,8 +1,10 @@
 import { MOODS } from '/shared.js';
 import { analyze } from '/analytics.js';
-import { allAssessments, downloadFile } from '/local-data.js';
+import { allAssessments, allMedications, allIntakes, getSetting, downloadFile } from '/local-data.js';
+import { DEFAULT_REFERENCE, referenceTimeline, medicationComparisons, medicationLabel } from '/health-model.js';
 import { entriesToCsv } from '/csv.js';
 import { requireInstalled } from '/install.js';
+import { syncPendingContribution } from '/contribute.js';
 await requireInstalled();
 
 const $ = selector => document.querySelector(selector);
@@ -16,6 +18,7 @@ let report;
 let page = 0;
 let period = '30';
 let loaded = false;
+let reference = DEFAULT_REFERENCE, dailyReferences = {};
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -61,6 +64,10 @@ function applyFilters() {
   renderTrend();
   renderWeekdays();
   renderHistory();
+  renderMedicationAnalysis();
+  if ($('#reference-day').value < start || $('#reference-day').value > end || !$('#reference-day').value) $('#reference-day').value = end;
+  $('#reference-day').min = start; $('#reference-day').max = end;
+  renderReferenceDay();
   $('#reflection').textContent = report.records.length ? `Você fez ${report.records.length} ${report.records.length === 1 ? 'avaliação' : 'avaliações'} em ${report.recordedDays} ${report.recordedDays === 1 ? 'dia' : 'dias'}. Observe como os sentimentos mudaram entre os horários e releia as resenhas de cada momento. Avaliações com todos os humores neutros também fazem parte desse histórico.` : 'Seu primeiro registro é um ponto de partida. Escolha um dia e inicie uma avaliação.';
 }
 function renderRanking() {
@@ -175,7 +182,7 @@ async function load() {
   $('#refresh').disabled = true;
   $('#status').textContent = 'Carregando seus registros…';
   try {
-    entries = await allAssessments();
+    [entries, reference, dailyReferences] = await Promise.all([allAssessments(), getSetting('reference', DEFAULT_REFERENCE), getSetting('dailyReferences', {})]);
     loaded = true;
     if (period) setPeriod(period);
     applyFilters();
@@ -198,9 +205,38 @@ $('#trend-mood').addEventListener('change', renderTrend);
 $('#prev-page').addEventListener('click', () => { if (page > 0) { page--; renderHistory(); } });
 $('#next-page').addEventListener('click', () => { if ((page + 1) * 10 < report.records.length) { page++; renderHistory(); } });
 $('#refresh').addEventListener('click', load);
+function renderMedicationAnalysis() {
+  const target = $('#medication-analysis'); target.replaceChildren();
+  const comparisons = medicationComparisons(report.records);
+  if (!comparisons.length) target.append(el('p', 'chart-empty', 'Avaliações antigas não recebem medicamentos retroativamente. Cadastre os esquemas em Medicamentos e ajustes para associar as próximas avaliações.'));
+  for (const group of comparisons) {
+    const row = el('div', 'medication-card');
+    row.append(el('h3', '', medicationLabel(group)), el('p', '', `Esquema iniciado em ${group.startDate.split('-').reverse().join('/')} ${group.startTime || '00:00'} · ${group.evaluations} ${group.evaluations === 1 ? 'avaliação' : 'avaliações'} neste período · ${group.first14} nos primeiros 14 dias.`));
+    const feelings = MOODS.filter(m => group.moodTotals[m.id]).map(m => `${m.name}: ${group.moodTotals[m.id]}`).join(' · ');
+    row.append(el('p', '', `Avaliações com níveis I a III: ${feelings || 'nenhuma'}.`));
+    target.append(row);
+  }
+}
+function renderReferenceDay() {
+  const date = $('#reference-day').value;
+  const ref = dailyReferences[date] ? { ...reference, ...dailyReferences[date], enabled: true } : reference;
+  const points = referenceTimeline(entries, date, ref);
+  const track = $('#reference-track'); const list = $('#reference-list'); track.replaceChildren(); list.replaceChildren();
+  for (const point of points) {
+    const referencePoint = point.source === 'reference';
+    const feelings = point.moods.filter(m => referencePoint || m.level > 0).map(m => `${MOODS.find(item => item.id === m.id)?.name} ${romans[m.level]}`).join(', ') || 'Todos os humores neutros';
+    const description = `${point.time || 'Sem horário'}${point.endTime ? '–' + point.endTime : ''}: ${feelings}. ${referencePoint ? 'Referência estimada' : 'Avaliação registrada; duração ' + (point.durationSource === 'reported' ? 'informada' : 'estimada')}.`;
+    const segment = el('span', `reference-segment${referencePoint ? ' estimated' : ''}`); segment.style.flexGrow = point.minutes || 1; segment.title = description; segment.setAttribute('aria-label', description); track.append(segment);
+    list.append(el('div', `reference-row${referencePoint ? '' : ' recorded'}`, description));
+  }
+  if (!points.length) list.append(el('p', 'chart-empty', 'Nenhuma avaliação neste dia. Ative a referência em Medicamentos e ajustes se desejar estimar lacunas.'));
+  $('#reference-explanation').textContent = 'As partes listradas são referência estimada, não sentimentos observados. Duração padrão: ' + ref.durationMinutes + ' minutos. No dia atual, somente o tempo já transcorrido é preenchido.';
+}
+$('#reference-day').addEventListener('change', renderReferenceDay);
 $('#export').addEventListener('click', async () => {
   try { downloadFile(entriesToCsv(await allAssessments()), 'text/csv;charset=utf-8', 'entre-dias.csv'); }
   catch (error) { $('#status').textContent = error.message; }
 });
 setPeriod('30');
 load();
+syncPendingContribution().catch(() => {});
