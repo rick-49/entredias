@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import { allAssessments, allMedications, allIntakes, getSetting, makeBackup, restoreBackup, downloadFile } from '/local-data.js';
 import { entriesToCsv } from '/csv.js';
 import { requireInstalled } from '/install.js';
@@ -23,7 +24,7 @@ document.querySelector('#restore').addEventListener('change', async event => {
   try {
     if (file.size > 20 * 1024 * 1024) throw new Error('Escolha um backup de até 20 MB.');
     const input = JSON.parse(await file.text());
-    if (!confirm('Restaurar as avaliações deste backup neste dispositivo? Os registros atuais serão mantidos.')) return;
+    if (!confirm(t('Restaurar as avaliações deste backup neste dispositivo? Os registros atuais serão mantidos.'))) return;
     const result = await restoreBackup(input);
     status.textContent = `${result.imported} avaliações restauradas. ${result.skipped} já existiam e foram mantidas.`;
     await storageInfo();

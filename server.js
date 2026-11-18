@@ -33,7 +33,7 @@ const files = {
   '/login': ['public/login.html', 'text/html; charset=utf-8'],
   '/manifest.webmanifest': ['public/manifest.webmanifest', 'application/manifest+json'],
 };
-for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js', 'saude.js', 'configuracoes.js', 'relatorio.js', 'comunidade.js', 'community-analysis.js', 'contribute.js', 'push-client.js', 'reference-dialog.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
+for (const file of ['app.js', 'dashboard.js', 'dados.js', 'install.js', 'login.js', 'share.js', 'sw.js', 'saude.js', 'configuracoes.js', 'relatorio.js', 'comunidade.js', 'community-analysis.js', 'i18n.js', 'translations.js', 'contribute.js', 'push-client.js', 'reference-dialog.js']) files[`/${file}`] = [`public/${file}`, 'text/javascript; charset=utf-8'];
 for (const file of ['styles.css', 'mobile.css', 'dashboard.css', 'landing.css', 'share.css', 'features.css']) files[`/${file}`] = [`public/${file}`, 'text/css; charset=utf-8'];
 for (const file of ['shared.js', 'analytics.js', 'csv.js', 'local-data.js', 'share-data.js', 'health-model.js', 'contribution-model.js', 'pdf-report.js', 'medication-catalog.js']) files[`/${file}`] = [file, 'text/javascript; charset=utf-8'];
 files['/vendor/jspdf.umd.min.js'] = ['public/vendor/jspdf.umd.min.js', 'text/javascript; charset=utf-8'];

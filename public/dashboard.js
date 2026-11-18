@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import { MOODS } from '/shared.js';
 import { analyze } from '/analytics.js';
 import { allAssessments, allMedications, allIntakes, getSetting, downloadFile } from '/local-data.js';
@@ -11,7 +12,7 @@ const $ = selector => document.querySelector(selector);
 const romans = ['Neutro', 'I', 'II', 'III'];
 const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const key = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-const shortDate = date => new Date(`${date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+const shortDate = date => new Date(`${date}T12:00:00Z`).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
 const percent = (n, total) => total ? Math.round(n / total * 100) : 0;
 let entries = [];
 let report;
@@ -48,7 +49,7 @@ function applyFilters() {
   report = analyze(entries, start, end);
   page = 0;
   $('#analysis').hidden = false;
-  $('#status').textContent = `${new Date(`${start}T12:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a ${new Date(`${end}T12:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} · ${report.records.length ? 'Análise dos registros salvos.' : 'Nenhum registro neste período. Experimente outro intervalo ou comece pelo diário.'}`;
+  $('#status').textContent = `${new Date(`${start}T12:00:00Z`).toLocaleDateString(locale(), { timeZone: 'UTC' })} a ${new Date(`${end}T12:00:00Z`).toLocaleDateString(locale(), { timeZone: 'UTC' })} · ${report.records.length ? 'Análise dos registros salvos.' : 'Nenhum registro neste período. Experimente outro intervalo ou comece pelo diário.'}`;
   $('#metric-days').textContent = report.recordedDays;
   $('#metric-coverage').textContent = `${percent(report.recordedDays, report.days)}% dos ${report.days} dias do período`;
   $('#metric-total').textContent = report.records.length;
@@ -152,7 +153,7 @@ function renderHistory() {
   for (const entry of report.records.slice(page * 10, (page + 1) * 10)) {
     const date = entry.date;
     const row = document.createElement('tr');
-    const dateCell = el('td', 'history-date', `${new Date(`${date}T12:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} · ${entry.time ?? 'Horário não informado'}`);
+    const dateCell = el('td', 'history-date', `${new Date(`${date}T12:00:00Z`).toLocaleDateString(locale(), { timeZone: 'UTC' })} · ${entry.time ?? 'Horário não informado'}`);
     const moods = el('td', 'history-moods');
     entry.moods.filter(item => item.level > 0).forEach(item => {
       const mood = MOODS.find(m => m.id === item.id);

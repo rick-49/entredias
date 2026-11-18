@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import { MOODS } from '/shared.js';
 import { ACTIVE_INGREDIENTS } from '/medication-catalog.js';
 import { allMedications, allIntakes, addIntake, addMedication, endMedication, allAssessments, getSetting, setSetting } from '/local-data.js';
@@ -37,7 +38,7 @@ async function renderMedications() {
       const timeLabel = element('label', 'Último horário em uso (inclusive)'); const time = document.createElement('input'); time.type = 'time'; time.value = '23:59'; timeLabel.append(time);
       const end = element('button', 'Encerrar este esquema'); end.className = 'today-button';
       end.addEventListener('click', async () => {
-        if (!confirm('Encerrar este esquema nessa data? As avaliações já salvas manterão os medicamentos informados na época.')) return;
+        if (!confirm(t('Encerrar este esquema nessa data? As avaliações já salvas manterão os medicamentos informados na época.'))) return;
         try { await endMedication(med.id, date.value, time.value); await renderMedications(); $('#med-status').textContent = 'Esquema encerrado. Para uma nova dose ou horário, faça outro cadastro com a data e hora de início.'; }
         catch (error) { $('#med-status').textContent = error.message; }
       });

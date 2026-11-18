@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import { MOODS, neutralMoods, validateEntry } from '/shared.js';
 import { allAssessments, allMedications, allIntakes, getSetting, setSetting, saveAssessment, downloadFile } from '/local-data.js';
 import { medicationSnapshot, medicationLabel, intakeSnapshot, validDate, DEFAULT_REFERENCE, referenceTimeline } from '/health-model.js';
@@ -46,11 +47,11 @@ function setStatus(message, error = false) {
   $('#editor-status').classList.toggle('error', error);
 }
 function mayDiscard() {
-  return !dirty || window.confirm('Há uma avaliação não salva. Deseja descartar as alterações?');
+  return !dirty || window.confirm(t('Há uma avaliação não salva. Deseja descartar as alterações?'));
 }
 function renderCalendar() {
   const end = addDays(weekStart, 6);
-  const format = date => date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+  const format = date => date.toLocaleDateString(locale(), { day: 'numeric', month: 'long' });
   $('#week-range').textContent = `${format(weekStart)} a ${format(end)} de ${end.getFullYear()}`;
   $('#week-grid').replaceChildren();
   for (let i = 0; i < 7; i++) {
@@ -90,7 +91,7 @@ function renderCalendar() {
   }
 }
 function renderDay() {
-  $('#day-title').textContent = fromKey(selected).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  $('#day-title').textContent = fromKey(selected).toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' });
   const records = dayAssessments();
   $('#day-count').textContent = `${records.length} ${records.length === 1 ? 'avaliação' : 'avaliações'}`;
   $('#assessment-list').replaceChildren();
@@ -165,7 +166,7 @@ function openAssessment(entry = null) {
   if (!entry) draft.intakes = intakeSnapshot(intakes, selected, draft.time);
   dirty = !entry;
   $('#editor-title').textContent = entry ? 'Editar avaliação' : 'Como você se sente agora?';
-  $('#selected-date').textContent = fromKey(selected).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+  $('#selected-date').textContent = fromKey(selected).toLocaleDateString(locale(), { day: 'numeric', month: 'long' });
   $('#assessment-time').value = draft.time ?? '';
   $('#assessment-time').required = draft.time !== null;
   $('#time-help').textContent = draft.time === null ? 'Registro antigo sem horário. Você pode informar um horário, se lembrar.' : 'O horário é preenchido ao iniciar. Você pode ajustá-lo.';
@@ -240,7 +241,7 @@ $('#export').addEventListener('click', async () => {
   finally { $('#export').disabled = false; }
 });
 window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
-$('#today-label').textContent = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+$('#today-label').textContent = new Date().toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' });
 renderCalendar(); renderDay();
 try {
   [assessments, medications, reference, dailyReferences, intakes] = await Promise.all([allAssessments(), allMedications(), getSetting('reference', DEFAULT_REFERENCE), getSetting('dailyReferences', {}), allIntakes()]); ready = true;

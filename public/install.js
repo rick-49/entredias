@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import '/share.js';
 
 export function isInstalled() {
@@ -81,7 +82,7 @@ if ('serviceWorker' in navigator) {
     Object.assign(notice.style, { position: 'fixed', bottom: '90px', left: '12px', right: '12px', zIndex: '10000', padding: '16px', background: '#fff', color: '#243b26', border: '2px solid #435d3b', borderRadius: '16px', boxShadow: '0 4px 24px #0003' });
     const message = document.createElement('p'); message.textContent = 'Nova versão pronta. Salve o que estiver preenchendo antes de atualizar.';
     const button = document.createElement('button'); button.type = 'button'; button.className = 'today-button'; button.textContent = 'Atualizar agora';
-    button.addEventListener('click', () => { if (confirm('Já salvou suas alterações? Atualizar recarrega esta tela.')) location.reload(); });
+    button.addEventListener('click', () => { if (confirm(t('Já salvou suas alterações? Atualizar recarrega esta tela.'))) location.reload(); });
     notice.append(message, button); document.body.append(notice);
   });
   navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(async registration => {

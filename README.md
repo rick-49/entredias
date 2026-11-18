@@ -100,3 +100,8 @@ O diário é uma ferramenta de registro e autoconhecimento; não realiza diagnó
 Cinco guias: Meu diário, Dashboard, Medicamentos, Configurações e Ajustes e backup. Medicamentos reúne esquemas e tomadas; Configurações reúne referência, lembretes e consentimento. O botão Enviar relatório para meu médico abre a preparação local do PDF; não envia automaticamente dados a terceiros.
 
 O painel /comunidade tem filtros por medicamento e dose, janela de 14/30/90 dias, sentimento e amostra mínima de 5/10/20 instalações por grupo. Exibe indicadores ponderados por observações, distribuição por dia, comparação de medicamentos e mapa semanal. Clicar num dia detalha os grupos; clicar num sentimento muda os gráficos. Os totais são vínculos entre avaliação e medicamento, não pessoas únicas. Dias sem dados divulgáveis não são tratados como neutros. Nenhuma amostra fictícia é publicada.
+
+## Idiomas da interface
+
+Português (Brasil), English e Español estão disponíveis em Configurações → Idioma do aplicativo, e no seletor da página inicial e análise geral. A escolha é salva localmente por navegador/instalação e funciona offline. A tradução preserva valores dos formulários e textos pessoais. PDF, CSV e mensagens push continuam no formato original em português nesta versão. Alguns detalhamentos dinâmicos preservam a redação original.
+

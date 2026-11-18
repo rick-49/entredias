@@ -1,3 +1,4 @@
+import { translate as t, locale } from '/i18n.js';
 import { MOODS } from '/shared.js';
 import { ACTIVE_INGREDIENTS } from '/medication-catalog.js';
 import { allMedications, allIntakes, addIntake, addMedication, endMedication, allAssessments, getSetting, setSetting } from '/local-data.js';
@@ -31,7 +32,7 @@ $('#contribution-days').addEventListener('change', () => previewContribution().c
 $('#save-contribution').addEventListener('click', async () => {
   const accepted = $('#contribution-consent').checked;
   if (!accepted) { await setSetting('contributionConsent', false); $('#contribution-status').textContent = 'Envio automático desligado. Para retirar o que já enviou, use o botão de retirada.'; return; }
-  if (!confirm('Autoriza enviar as observações de medicamentos e sentimentos descritas acima e atualizar essa contribuição automaticamente ao salvar avaliações? As resenhas não serão enviadas.')) { $('#contribution-consent').checked = await getSetting('contributionConsent', false); return; }
+  if (!confirm(t('Autoriza enviar as observações de medicamentos e sentimentos descritas acima e atualizar essa contribuição automaticamente ao salvar avaliações? As resenhas não serão enviadas.'))) { $('#contribution-consent').checked = await getSetting('contributionConsent', false); return; }
   $('#save-contribution').disabled = true;
   try {
     await setSetting('contributionDays', Number($('#contribution-days').value));
@@ -43,7 +44,7 @@ $('#save-contribution').addEventListener('click', async () => {
   finally { $('#save-contribution').disabled = false; }
 });
 $('#revoke-contribution').addEventListener('click', async () => {
-  if (!confirm('Desligar a contribuição e retirar os dados desta instalação do banco de análise geral? O diário local será mantido.')) return;
+  if (!confirm(t('Desligar a contribuição e retirar os dados desta instalação do banco de análise geral? O diário local será mantido.'))) return;
   try { await revokeContribution(); $('#contribution-consent').checked = false; $('#contribution-status').textContent = 'Contribuição desligada e registros desta instalação retirados do servidor.'; }
   catch (error) { $('#contribution-consent').checked = false; $('#contribution-status').textContent = error.message; }
 });
