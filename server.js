@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { runtimeConfig } from './config.js';
 import { createAccess } from './auth.js';
-import { createCommunityDatabase } from './community-db.js';
+import { createCommunityDatabase, communityErrorDiagnostic } from './community-db.js';
 import { validateContribution, CONTRIBUTION_VERSION, MIN_CONTRIBUTORS } from './contribution-model.js';
 import { createPushService } from './push-server.js';
 import { validatePush } from './reminder-model.js';
@@ -47,7 +47,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/api/community/status') return json(res, 200, { configured: community.configured, minimumContributors: MIN_CONTRIBUTORS });
     if (req.method === 'GET' && url.pathname === '/api/community/summary') {
       try { return json(res, 200, { groups: await community.summary(), minimumContributors: MIN_CONTRIBUTORS }); }
-      catch (error) { console.error('Community:', error.code || error.name); return json(res, 503, { error: 'Análise geral ainda indisponível. O diário local continua funcionando.' }); }
+      catch (error) { console.error('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral ainda indisponível. O diário local continua funcionando.' }); }
     }
     if (req.method === 'GET' && url.pathname === '/api/push/config') {
       try { return json(res, 200, await push.configuration()); }
@@ -62,7 +62,7 @@ const server = http.createServer(async (req, res) => {
         if (url.pathname === '/api/community/contribution') {
           const records = req.method === 'POST' ? validateContribution(body) : null;
           try { if (records) await community.save(body.token, records, CONTRIBUTION_VERSION); else await community.remove(body.token); }
-          catch (error) { console.error('Community:', error.code || error.name); return json(res, 503, { error: 'Análise geral indisponível. O registro permanece no dispositivo; o envio pode ser tentado depois.' }); }
+          catch (error) { console.error('Community:', communityErrorDiagnostic(error)); return json(res, 503, { error: 'Análise geral indisponível. O registro permanece no dispositivo; o envio pode ser tentado depois.' }); }
         } else {
           const input = req.method === 'POST' ? validatePush(body) : null;
           try { if (input) await push.save(input); else await push.remove(body.token); }

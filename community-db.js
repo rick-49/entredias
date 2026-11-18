@@ -1,6 +1,14 @@
 import { createHash } from 'node:crypto';
 import { aggregateCommunity } from './contribution-model.js';
 
+// Registra somente campos conhecidos da recusa, nunca SQL, credenciais ou o erro completo.
+export function communityErrorDiagnostic(error) {
+  const code = /^[A-Z0-9_]+$/.test(error?.code || '') ? error.code : 'DATABASE_ERROR';
+  if (code !== 'ER_ACCESS_DENIED_ERROR') return code;
+  const match = String(error.sqlMessage || error.message || '').match(/Access denied for user '([a-zA-Z0-9_.-]{1,80})'@'([a-zA-Z0-9_.:%-]{1,255})' \(using password: (YES|NO)\)/);
+  return match ? `${code} user=${match[1]} origin=${match[2]} passwordProvided=${match[3]}` : code;
+}
+
 export function createCommunityDatabase(env = process.env) {
   const configured = env.COMMUNITY_ENABLED === 'true' && ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].every(key => env[key]);
   let connection;
